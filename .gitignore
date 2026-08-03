@@ -1,9 +1,8 @@
 # Data (WVS is not redistributable)
-data/raw/*.csv
-data/raw/*.parquet
-data/raw/*.xlsx
-data/**/*.csv
-data/**/*.parquet
+data/raw/
+# Keep processed data for reference (but not raw data)
+data/processed/*.parquet
+data/processed/*.csv
 
 # Cache & inference results
 results/
