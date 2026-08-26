@@ -9,7 +9,7 @@ The **only** blocker is the real WVS-7 India data, which requires manual downloa
 1. Go to: https://www.worldvaluessurvey.org/
 2. Sign up (free, takes 2 minutes)
 3. Download **cross-national WVS-7 CSV** (not India-only, so `--country USA` works later)
-4. Place in: `data/raw/WVS_Cross_Wave_1981_2022_CSV_v5_0.csv`
+4. Place in: `data/raw/WVS_Cross-National_Wave_7_csv_v6_0.csv`
 
 ## Once You Have the Data
 

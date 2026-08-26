@@ -28,6 +28,7 @@ dependencies = [
     "matplotlib>=3.8",
     "tqdm>=4.66",
     "pydantic>=2.0",
+    "pypdf>=4.0",  # parses the WVS-7 codebook PDF into item metadata
 ]
 
 [project.optional-dependencies]

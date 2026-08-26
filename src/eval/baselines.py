@@ -35,9 +35,18 @@ class NationalMarginalBaseline:
     def __init__(self):
         self.marginal = None
 
-    def fit(self, y_true: np.ndarray):
-        """Fit the marginal distribution from training data."""
-        counts = np.bincount(y_true)
+    def fit(self, y_true: np.ndarray, weights: np.ndarray = None):
+        """Fit the marginal distribution from training data.
+
+        Pass W_WEIGHT here: the "national marginal" is a population-level
+        claim, so it should be survey-weighted even though respondent-level
+        predictions (this baseline's own .predict(), and any LLM's) are not.
+        """
+        n_bins = int(y_true.max()) + 1
+        if weights is None:
+            counts = np.bincount(y_true, minlength=n_bins)
+        else:
+            counts = np.bincount(y_true, weights=weights, minlength=n_bins)
         self.marginal = counts / counts.sum()
 
     def predict_proba(self, n_samples: int) -> np.ndarray:
@@ -172,6 +181,7 @@ def evaluate_all_baselines(
     df_test: pd.DataFrame,
     y_col: str = "answer",
     demo_cols: List[str] = None,
+    weight_col: str = None,
 ) -> Dict[str, Dict]:
     """
     Evaluate all baseline models on test set.
@@ -198,9 +208,11 @@ def evaluate_all_baselines(
     probs = baseline_uniform.predict_proba(len(y_test))
     results["uniform"] = compute_metrics(y_test, y_pred, probs)
 
-    # 2. National marginal
+    # 2. National marginal -- survey-weighted, since this is the one baseline
+    # standing in for a population-level claim rather than a per-respondent one
     baseline_marginal = NationalMarginalBaseline()
-    baseline_marginal.fit(df_train[y_col].values)
+    weights = df_train[weight_col].values if weight_col else None
+    baseline_marginal.fit(df_train[y_col].values, weights=weights)
     y_pred = baseline_marginal.predict(len(y_test))
     probs = baseline_marginal.predict_proba(len(y_test))
     results["marginal"] = compute_metrics(y_test, y_pred, probs)

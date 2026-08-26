@@ -1,5 +1,7 @@
-# Data (WVS is not redistributable)
-data/raw/
+# Data (WVS is not redistributable -- WVSA Conditions of Use forbid it)
+data/raw/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
 # Keep processed data for reference (but not raw data)
 data/processed/*.parquet
 data/processed/*.csv
@@ -50,6 +52,10 @@ ENV/
 # Notebooks
 .ipynb_checkpoints/
 *.ipynb_checkpoints
+
+# API keys / secrets
+.env
+.env.*
 
 # Kaggle credentials
 kaggle.json

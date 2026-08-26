@@ -22,10 +22,14 @@ pip install -r requirements-dev.txt
 
 #### Download WVS-7
 
-1. Go to [https://www.worldvaluessurvey.org/](https://www.worldvaluessurvey.org/)
-2. Sign up (free, takes 2 minutes)
-3. Download the **cross-national WVS-7 CSV** (not India-only)
-4. Place it in `data/raw/WVS_Cross_Wave_1981_2022_CSV_v5_0.csv`
+1. Go to [WVS Wave 7 documentation](https://www.worldvaluessurvey.org/WVSDocumentationWV7.jsp)
+2. Under **Statistical Data Files**, click `WVS Cross-National Wave 7 csv v6 0.zip`
+   (**v6.0 — earlier versions have no India rows**)
+3. Fill the one-page registration form and tick "Conditions of Use". No account needed.
+4. Unzip into `data/raw/`, giving `data/raw/WVS_Cross-National_Wave_7_csv_v6_0.csv`
+
+Full walkthrough, including the standard-vs-inverted-scales decision that affects
+WorldValuesBench reuse: **[DATA_ACQUISITION.md](DATA_ACQUISITION.md)**.
 
 #### Clean and Prepare
 
@@ -189,9 +193,15 @@ LLM must beat at least baselines 2 and 3 for silicon sampling to add value.
 ### "WVS CSV not found"
 
 ```bash
-# Download and place correctly
-ls -la data/raw/WVS_Cross_Wave_1981_2022_CSV_v5_0.csv
+ls -la data/raw/WVS_Cross-National_Wave_7_csv_v6_0.csv
 ```
+
+If the zip extracted into a subdirectory, move the CSV up one level.
+
+### "No respondents found for IND"
+
+You downloaded v5.0 or earlier, which has no India rows. Re-download
+`WVS Cross-National Wave 7 csv v6 0.zip`. See [DATA_ACQUISITION.md](DATA_ACQUISITION.md).
 
 ### "No candidate items found"
 

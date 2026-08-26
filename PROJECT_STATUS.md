@@ -97,7 +97,7 @@
 ### What's Needed from User
 1. **WVS-7 India Data**
    - Download from worldvaluessurvey.org (free registration)
-   - Place in: `data/raw/WVS_Cross_Wave_1981_2022_CSV_v5_0.csv`
+   - Place in: `data/raw/WVS_Cross-National_Wave_7_csv_v6_0.csv`
    - Command: `python -m src.data.load_wvs --country IND`
 
 2. **API Keys** (when ready for inference)

@@ -16,10 +16,15 @@ This project measures whether "silicon sampling" — using LLMs conditioned on d
 
 ## Data
 
-**Primary:** World Values Survey Wave 7, India. N ≈ 1,692.  
-Download from [worldvaluessurvey.org](https://www.worldvaluessurvey.org) → Data & Documentation → Statistical Data Files.
+**Primary:** World Values Survey Wave 7, India. N = 1,692.  
+Download from [worldvaluessurvey.org](https://www.worldvaluessurvey.org/WVSDocumentationWV7.jsp) → Statistical Data Files → `WVS Cross-National Wave 7 csv v6 0.zip`, then unzip into `data/raw/`.
 
-Place the cross-national WVS-7 CSV in `data/raw/`.
+**You need v6.0 specifically.** India's fieldwork completed July 2023 and only
+entered the cross-national file at v6.0 — v5.0 and earlier contain no India rows.
+
+📄 **See [DATA_ACQUISITION.md](DATA_ACQUISITION.md)** for the full walkthrough:
+registration form, standard-vs-inverted scales, expected columns, alternative
+sources, and troubleshooting.
 
 **Reuse:** Clone [`demon702/worldvaluesbench`](https://github.com/demon702/worldvaluesbench) for WVS variable↔question mappings and demographic verbalisation.
 
@@ -158,7 +163,7 @@ git clone https://github.com/demon702/worldvaluesbench.git wvb_ref
 uv sync
 
 # Download WVS-7 CSV (manual step on worldvaluessurvey.org)
-# Place in data/raw/WVS_Cross_Wave_1981_2022_CSV_v5_0.csv
+# Place in data/raw/WVS_Cross-National_Wave_7_csv_v6_0.csv
 
 # Parse and select items
 python -m src.data.load_wvs --country IND
