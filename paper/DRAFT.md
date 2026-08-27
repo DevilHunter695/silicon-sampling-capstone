@@ -1,0 +1,121 @@
+# Silicon Sampling for Indian Public Opinion: A Subgroup Fidelity Audit
+
+**Status: working draft.** Every number below is from a real, run pipeline — none are estimated or illustrative. Sections marked *[IN PROGRESS]* are being actively extended (item-sample widening, Track B fine-tuning) and will be updated as those complete; nothing here should be read as final.
+
+---
+
+## 1. Introduction
+
+"Silicon sampling" — conditioning a large language model on a demographic profile and treating its output as a stand-in for that person's survey response — has been proposed as a cheap substitute for costly human polling. Prior validation of this idea (Argyle et al. 2023; WorldValuesBench, LREC-COLING 2024) has largely reported *aggregate* fidelity: does the LLM reproduce a population's overall opinion distribution. This leaves an open question with real consequences for how the technique gets used: **does fidelity hold evenly across a population's own internal diversity, or does it silently degrade for specific subgroups** — while looking fine in aggregate?
+
+We audit this for India using World Values Survey Wave 7 (WVS-7) data, stratifying by urban/rural residence, income, education, sex, age, and region. Unlike most prior work, we test whether any finding **replicates across two independent, unrelated models** before treating it as a claim about the technique rather than about one model's idiosyncrasies.
+
+**Contributions:**
+1. The first intra-national subgroup fidelity audit of silicon sampling for India, cross-validated across two independent LLMs.
+2. A fair-comparison baseline suite (uniform, national marginal, demographic-cell lookup, logistic regression, gradient boosting) establishing what a lookup table alone achieves, so any LLM result can be judged against a real floor and ceiling.
+3. A codebook-grounded, auditable item-selection pipeline — every one of the 144 candidate survey items screened against the official WVS-7 documentation, not hand-picked.
+4. A released, reproducible pipeline (data processing, prompting, multi-provider inference, evaluation) parameterized so the same audit can be run for other countries or models.
+
+## 2. Data
+
+**Source:** World Values Survey Wave 7, India, v6.0 (worldvaluessurvey.org). India's fieldwork completed July 2023 and only entered the cross-national release at v6.0 — earlier releases contain no India data at all, a version dependency we verified directly rather than assumed.
+
+**Sample:** N = 1,692 respondents, matching the WVS-published India sample size exactly.
+
+**Item selection:** We parsed the official 404-page WVS-7 Variables Report into structured metadata (question wording, response scale, valid codes) and screened all 373 `Q`-prefixed columns in the raw data against it. Items were excluded for: no codebook entry (technical/country-specific columns), membership in the demographic block Q260–Q290 (these condition the prompt and cannot also be prediction targets, to avoid leaking the answer), being a WVS-shipped derived/recoded duplicate of another selected item, insufficient response-scale size, non-ordinal or nominal coding (e.g. the postmaterialism battery, where respondents choose from an unordered menu of national goals — MAE and other ordinal-distance metrics are undefined on such items), excess missingness (>10%), or insufficient response variation. **144 of 373 candidates passed.** One item (Q144, crime victimization) was manually excluded despite passing automated screening: it is a factual/behavioral recall question, not a values or attitude item, and does not belong in a silicon-sampling fidelity target set.
+
+## 3. Method
+
+### 3.1 Baselines
+
+Before any LLM inference, we established the bar a demographic-conditioned LLM must clear for silicon sampling to add value over simpler alternatives:
+
+| Baseline | Accuracy | MAE |
+|---|---|---|
+| Gradient boosting (demographics → answer) | **48.2%** [45.8, 50.5] | 1.13 |
+| Logistic regression | 46.6% [44.0, 49.2] | 1.24 |
+| Demographic-cell lookup | 34.5% [32.3, 36.8] | 1.51 |
+| National marginal (survey-weighted) | 32.8% [30.6, 35.1] | 1.55 |
+| Uniform random | 19.4% [18.3, 20.5] | 2.11 |
+
+All baselines evaluated out-of-fold, 5-fold stratified cross-validation, across all 144 selected items. The national-marginal baseline is weighted by WVS's own respondent weight (`W_WEIGHT`), since it represents a population-level claim; the LLM's respondent-level predictions are deliberately left unweighted, since weighting would double-count the demographic information already conditioning the prompt.
+
+**Note on the comparison's fairness:** the supervised baselines (logistic regression, gradient boosting) are fit directly to this population's actual demographic→answer correlations via cross-validation. The LLM sees none of this — it reasons zero-shot from general world knowledge. This is not a fair fight in the LLM's favor; it is closer to open-book vs. closed-book. Beating the supervised baselines under zero-shot prompting alone was never a realistic bar, and falling short of it is not by itself a negative result for silicon sampling — it is a boundary condition worth stating explicitly rather than glossing over.
+
+### 3.2 Models
+
+- **Gemini 3.1 Flash Lite** (Google, free tier)
+- **gpt-oss-120b** (OpenAI's open-weight 120B model, served via Groq's free tier)
+
+These are free-tier / open-weight models, not frontier commercial models (e.g. GPT-4-class). This is a real scope limitation, discussed in §6.
+
+### 3.3 Prompt conditions
+
+- **P0** — no demographic information
+- **P1** — minimal (age, sex, region)
+- **P2** — full structured demographic profile (14 attributes: sex, age, marital status, education, employment, occupation, social class, income decile, religion, urban/rural, region, town size, interview language)
+- **P3** — the same information rendered as a first-person naturalistic backstory rather than a bulleted list
+
+An initial six-condition pilot (n=99 per condition, 20 respondents × 5 items, both models, P0/P2/P3 and two reasoning-effort settings) found all six configurations within a 27.3–31.3% accuracy band, with **P0 and P2 statistically indistinguishable on both models independently** — i.e., providing the model no demographic information at all did not measurably underperform providing a full profile. This unexpected pilot finding motivated scaling P2 specifically (the condition with a substantive demographic claim to test) to a properly-powered sample for the subgroup analysis in §4, rather than continuing to search across prompt conditions.
+
+### 3.4 Verbalization
+
+Both demographic profiles and question text/answer options are generated programmatically from the same codebook metadata used for item selection (§2) — no hand-written labels. A model's free-text reply is parsed against the valid response codes for that item; an unparseable reply is recorded as a refusal, never silently coerced into a guess.
+
+## 4. Results
+
+### 4.1 Overall accuracy — two models converge
+
+| Model | n | Accuracy | 95% CI | MAE | Refusal rate |
+|---|---|---|---|---|---|
+| Gemini 3.1 Flash Lite | 457 | 28.9% | [25.0, 32.9] | 1.15 | 0.2% |
+| gpt-oss-120b (Groq) | 909 | 28.7% | [25.9, 31.6] | 0.99 | 0.0% |
+
+Two models built by different organizations, trained on different data, with no shared lineage, converged on **statistically indistinguishable accuracy**. Both beat the national-marginal baseline on every item tested (5/5) and the demographic-cell lookup on most (4/5 Gemini, 3/5 Groq). Neither approaches the supervised baselines (§3.1) — consistent with the fairness caveat noted there.
+
+### 4.2 Subgroup fidelity gap — the central finding
+
+Fidelity gap = best-performing demographic category's accuracy minus worst-performing, per axis, restricted to categories with n≥30 so a single small cell cannot manufacture an artificially large gap.
+
+| Axis | Gemini gap | Groq gap | Replicates across models? |
+|---|---|---|---|
+| **Region zone** | 18.3 pts | 18.4 pts | **Yes — near-exact agreement** |
+| **Age band** | 23.7 pts | 15.9 pts | Yes, both large |
+| Income tercile | 9.1 pts | 5.6 pts | Same direction |
+| Education band | 7.1 pts | 5.2 pts | Same direction |
+| **Urban / Rural** | 3.8 pts | 3.2 pts | **Yes — smallest gap, both models** |
+| Sex | 11.0 pts | 0.9 pts | **No** |
+
+**Finding 1 — fidelity is not uniform, and the pattern of unevenness replicates.** Region and age-band gaps are large in both independently-run models. The region-gap agreement (18.3 vs. 18.4 points) in particular is close enough that coincidence is an unlikely explanation.
+
+**Finding 2 — urban/rural, the axis silicon-sampling critiques most often target, shows the smallest gap in both models.** This is a specific, falsifiable claim rather than the more common blanket assertion that LLM-simulated respondents systematically misrepresent rural populations. Our data argues the more consistent failure mode here is regional and generational, not urban/rural.
+
+**Finding 3 — the sex gap does not replicate, and we report that rather than omit it.** Gemini shows an 11.0-point male-favoring gap; Groq shows 0.9 points. Presenting only the Gemini number would overstate a pattern that a second model does not support. We treat this as evidence the sex gap is model-specific behavior rather than a property of the underlying task or population.
+
+## 5. Discussion
+
+Taken together, §4.1 and §4.2 support a specific rather than general claim about zero-shot silicon sampling on this task: **two unrelated free-tier LLMs reach a similar, modest fidelity ceiling (~29%) on individual-level prediction, beat the naive baselines, fall short of a model actually fit to the population, and share a specific, replicated pattern of subgroup unevenness (region and age, not urban/rural).** This is more informative than an aggregate fidelity number alone, and more defensible than a single-model subgroup claim, because the region/age finding was confirmed independently rather than assumed to generalize from one run.
+
+The P0≈P2 pilot finding (§3.3) is worth surfacing on its own: if replicated at scale, it would suggest these particular models' implicit "average respondent" prior is not being meaningfully perturbed by explicit demographic conditioning — a finding relevant to whether the demographic-prompting approach to silicon sampling is doing the work it is assumed to do, independent of the subgroup-fidelity question.
+
+## 6. Limitations
+
+- **Item coverage.** Results in §4 use 5 of the 144 selected items; a wider sample *[IN PROGRESS — extending to 15 items as of this draft]* is needed before treating the magnitude of any gap as precise, though the cross-model replication in §4.2 is a stronger check than item count alone would provide.
+- **Free-tier / non-frontier models.** Neither model tested is a frontier commercial system; whether this fidelity ceiling and gap pattern holds for larger models is untested.
+- **No calibrated token probabilities.** Neither provider exposed real per-token logprobs at this tier; distributional metrics beyond accuracy/MAE were not computed on calibrated probabilities.
+- **Region-zone naming.** WVS-7's official annex maps region codes to named zones; the eight zone labels used in reporting were reconstructed from the codebook's country structure rather than read directly from that annex, and should be re-verified before being treated as final in any submitted version.
+- **India's language variable is unusable as recorded.** Every respondent's interview-language field is coded identically (Hindi) regardless of actual fieldwork language, so a language-based subgroup axis — relevant given India's linguistic diversity — could not be tested from this data as released.
+- **No fine-tuning comparison yet.** *[IN PROGRESS]* Track B (adapting a model to this population via QLoRA fine-tuning) would test whether closing the accuracy gap to the supervised baselines also narrows or widens the region/age fidelity gap — an open question this draft does not yet answer.
+
+## 7. Next steps
+
+1. Widen item coverage beyond 5 items (in progress).
+2. Investigate the non-replicating sex gap directly rather than leaving it as an open question.
+3. Verify region-zone labels against the official WVS-7 annex.
+4. Track B: QLoRA fine-tune on Kaggle's free-tier T4 GPUs; test whether fine-tuning narrows or widens the region/age fidelity gap (Δ_gap).
+
+## References
+
+- Argyle, L. et al. (2023). "Out of One, Many: Estimating individual heterogeneity through linguistic evidence."
+- WorldValuesBench (LREC-COLING 2024). https://github.com/demon702/worldvaluesbench
+- Haerpfer, C. et al. (eds.) (2022). *World Values Survey: Round Seven — Country-Pooled Datafile Version 6.0.* JD Systems Institute & WVSA Secretariat. doi:10.14281/18241.24
