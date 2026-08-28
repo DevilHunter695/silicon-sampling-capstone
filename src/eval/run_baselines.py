@@ -24,6 +24,16 @@ logger = logging.getLogger(__name__)
 
 DEMO_COLS = ["H_URBRURAL", "Q288", "Q275R", "Q260", "Q262", "N_REGION_ISO"]
 
+# The full attribute set the LLM's P2 prompt is verbalized from
+# (src/prompts/verbalize.py: DEMOGRAPHIC_CODE_COLS + age/children/urban-rural/
+# income/region/town-size/language). Used only for the "matched" supervised
+# baselines -- cell_lookup stays on DEMO_COLS above since 14 dims of lookup
+# on ~1.5k respondents collapses to memorization, not a real baseline.
+MATCHED_DEMO_COLS = [
+    "Q260", "Q273", "Q275R", "Q279", "Q281", "Q287", "Q289",
+    "Q262", "Q274", "H_URBRURAL", "Q288", "N_REGION_ISO", "G_TOWNSIZE", "LNGE_ISO",
+]
+
 
 def _encode_item(df: pd.DataFrame, question_id: str, codebook: dict) -> pd.Series:
     """Map an item's raw WVS codes onto 0..k-1, in the same order used to
@@ -45,7 +55,8 @@ def run_all_baselines(
     folds that item had enough data to fit in.
     """
     df = df.copy()
-    demo_features = df[["respondent_id"] + DEMO_COLS].copy()
+    all_demo_cols = sorted(set(DEMO_COLS) | set(MATCHED_DEMO_COLS))
+    demo_features = df[["respondent_id"] + all_demo_cols].copy()
     demo_features["N_REGION_ISO"] = demo_features["N_REGION_ISO"].astype(str)
 
     item_rows = []
@@ -54,7 +65,10 @@ def run_all_baselines(
         y_full = _encode_item(df, question_id, codebook)
         valid_mask = y_full.notna()
 
-        fold_metrics = {name: [] for name in ["uniform", "marginal", "cell_lookup", "logistic", "gbm"]}
+        fold_metrics = {
+            name: []
+            for name in ["uniform", "marginal", "cell_lookup", "logistic", "gbm", "logistic_matched", "gbm_matched"]
+        }
 
         for fold in folds["folds"]:
             train_ids = [rid for rid in fold["train"] if valid_mask.loc[df["respondent_id"] == rid].any()]
@@ -74,7 +88,8 @@ def run_all_baselines(
 
             try:
                 results = evaluate_all_baselines(
-                    df_train, df_test, y_col="answer", demo_cols=DEMO_COLS, weight_col="W_WEIGHT"
+                    df_train, df_test, y_col="answer", demo_cols=DEMO_COLS,
+                    weight_col="W_WEIGHT", matched_demo_cols=MATCHED_DEMO_COLS,
                 )
             except Exception as exc:  # a degenerate fold (e.g. single-class train) shouldn't kill the run
                 logger.warning(f"{question_id} fold {fold['fold']}: baseline fit failed ({exc}), skipping")

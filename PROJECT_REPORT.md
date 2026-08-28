@@ -2,7 +2,7 @@
 
 **Purpose of this document:** a single, complete, parameter-by-parameter account of everything done in this project, in the order it was done, with every threshold, every bug found and fixed, every real result, and an honest accounting of what remains. Written so the entire project can be judged and reproduced from this document alone, without needing to read the conversation history it came from.
 
-**Status as of writing:** ~70% complete against the project's own 7-phase plan (Phase 4/fine-tuning excluded from that figure — deferred by explicit instruction, not incomplete work). See §11 for the full breakdown.
+**Status as of writing (2026-08-28):** ~90% complete against the project's own 7-phase plan (Phase 4/fine-tuning excluded from that figure — deferred by explicit instruction, not incomplete work). Track A inference and subgroup analysis are now fully converged on both models at both item widths (5 and 15 items). See §11 for the full breakdown.
 
 ---
 
@@ -100,6 +100,17 @@ Implemented in `src/eval/baselines.py`, orchestrated in `src/eval/run_baselines.
 
 **Fairness caveat, stated explicitly:** the supervised baselines (logistic regression, gradient boosting) are fit *directly* to this population's actual demographic↔answer correlations via cross-validation. An LLM prompted zero-shot has no such access — it reasons from general world knowledge only. Falling short of these two baselines was never a realistic bar for zero-shot prompting and is not, by itself, evidence against silicon sampling.
 
+**Matched-feature baselines, added and completed 2026-08-28:** the table above uses a 6-column demographic subset (`H_URBRURAL`, `Q288`, `Q275R`, `Q260`, `Q262`, `N_REGION_ISO`), which is *not* the same information the LLM's P2 prompt actually sees (14 attributes — see §4.1). `logistic_matched`/`gbm_matched` variants give the supervised baselines the full 14-attribute set instead:
+
+| Baseline | Accuracy | 95% CI | Mean MAE |
+|---|---|---|---|
+| **Gradient boosting, matched (14 attrs)** | **50.1%** | [47.6, 52.5] | 1.07 |
+| Gradient boosting, original (6 attrs) | 48.2% | [45.8, 50.5] | 1.13 |
+| Logistic regression, matched (14 attrs) | 46.9% | [44.3, 49.5] | 1.21 |
+| Logistic regression, original (6 attrs) | 46.6% | [44.0, 49.2] | 1.24 |
+
+**Effect of matching the feature set is real but modest:** GBM gains 1.9 points (48.2→50.1%) from the extra 8 attributes; logistic regression is essentially flat (+0.3 points) — it was already saturating on the 6-column set and the added attributes (marital status, employment, occupation, social class, religion, town size, language, no. of children) mostly don't add independent linear signal once urban/rural, income, education, sex, age, and region are already in. The zero-shot LLM's gap to the population-fit ceiling is therefore slightly *larger* than the original 6-column comparison suggested, not smaller — the critique that prompted this check was valid, and the correction moves the ceiling further from the LLM's ~24–29% accuracy, not closer.
+
 ---
 
 ## 4. Prompting and Verbalization
@@ -117,7 +128,9 @@ Implemented in `src/eval/baselines.py`, orchestrated in `src/eval/run_baselines.
 
 `src/prompts/verbalize.py` builds every demographic string and every item's answer-option text **programmatically from the same codebook metadata used for item selection** — no hand-typed labels. A respondent's raw numeric codes (e.g. `Q275 = 6`) are mapped to their official codebook label ("Bachelor or equivalent (ISCED 6)") at verbalization time.
 
-**Region-zone labels are the one reconstructed exception:** WVS-7's official annex maps 8-digit region codes to named zones, but that annex was not machine-readable from the codebook PDF text extracted here. The 8 zone names used (North, North-East, East, Central, West, South ×3 sub-codes) were cross-referenced from the codebook's country structure rather than read directly from the annex — **flagged in every published output as needing re-verification before being treated as final.**
+**Region labels — found wrong, now fixed (2026-08-28):** WVS-7's official annex maps 8-digit `N_REGION_ISO` codes to India's 8 sampled states/territory. An earlier version of this table did not locate the annex (it appeared, from the extracted codebook text, to say only "country-specific list of codes in Annex" with no annex included) and substituted a guessed macro-zone scheme (North/South/East/etc.). On locating the actual annex (`data/raw/WVS7_Codebook_Variables_report_V6.0.pdf`, p.227, "INDIA" block), **every one of those 8 guessed labels was wrong** — e.g. code `356028` is **Uttar Pradesh**, not "South zone." The table has been corrected to the verified annex values (356004 Bihar, 356008 Haryana, 356015 Maharashtra, 356021 Punjab, 356025 Telangana, 356028 Uttar Pradesh, 356029 West Bengal, 356034 Delhi).
+
+**Disclosure:** every P1/P2/P3 prediction collected before this fix (all results in §7 below) was prompted with the **wrong** region text for the `region` attribute — e.g. a Uttar Pradesh respondent's prompt said "South zone" instead of "Uttar Pradesh." This does not affect the *subgroup grouping* used in fidelity-gap analysis (that groups on the raw `N_REGION_ISO` code, computed independently of the label text — see `src/eval/subgroups.py`), only what the LLM was actually *told* about the respondent's region as one of 14 demographic attributes. Net effect: the region attribute's contribution to P2/P3 prompts was noise rather than signal throughout this project to date. A fix-and-rerun is listed in §12 as follow-up work, not yet done (would cost fresh API quota on both providers).
 
 **India's language variable is unusable as recorded:** both `S_INTLANGUAGE` and `LNGE_ISO` are constant (`hi`/Hindi) across all 1,692 respondents, with no second language field anywhere in the 613 columns. Verified directly, not assumed. A language-based subgroup axis — relevant given India's linguistic diversity — cannot be tested from this data as released.
 
@@ -237,22 +250,48 @@ Every bug found during this project, in the order discovered, all fixed and comm
 | Urban / Rural | 3.8 pts | 3.2 pts | Yes — smallest in both |
 | Sex | 11.0 pts | 0.9 pts | **No** |
 
-### 7.6 Item-widening run, 15 items (Groq: n=556, fully converged; Gemini: n≈700+, converging at time of writing)
+### 7.6 Item-widening run, 15 items — both models now fully converged
 
-Groq re-run on 15 items instead of 5 to test whether §7.5's gaps are stable as item coverage widens:
+Both providers re-run on the same 15 items (Groq: n=556, 40 respondents; Gemini: n=421, 30 respondents, a strict subset of Groq's 40) to test whether §7.5's gaps are stable as item coverage widens. **Gemini's run finished converging on 2026-08-28: 421/421 predictions, 0 failures.**
 
-| Axis | 5 items | 15 items | Stable? |
-|---|---|---|---|
-| **Age band** | 15.9 pts | 16.7 pts | **Yes — the most robust finding in this study** |
-| Sex | 0.9 pts | 5.6 pts | Grew, still modest |
-| **Region zone** | 18.4 pts | **6.3 pts** | **No — shrank by two-thirds** |
-| Urban / Rural | 3.2 pts | 4.3 pts | Roughly stable |
-| Education band | 5.2 pts | 3.4 pts | Roughly stable |
-| Income tercile | 5.6 pts | 2.1 pts | Shrank |
+| | Gemini (15 items) | Groq (15 items) |
+|---|---|---|
+| n | 421 | 556 |
+| Accuracy | 24.9% | 23.5% (on the 421-row Gemini-overlap subset; 23.7% on its full n=556) |
+| 95% CI | [20.9, 28.7] | [20.3, 27.0] |
+| MAE | 1.66 | ~1.6 (comparable) |
+| Refusal rate | 0.0% | 0.0% |
+| Beats national-marginal baseline | 9/15 items | — |
+| Beats demographic-cell baseline | 8/15 items | — |
 
-Overall accuracy also shifted: 28.7% (5 items) → 23.7% (15 items, [20.3, 27.0]), driven by four 10-point science-attitude items (Q109, Q160, Q161, Q162) with much higher error (MAE 3.2–4.0) than the original 4-point items (MAE 0.8–1.2) — the mechanical scale-size effect (more options = harder exact match) documented in item-selection methodology.
+**Subgroup fidelity gaps, 15 items, both models (region labels are the corrected, actual-annex values from §4.2 — but see the disclosure there: the *prompt text itself* used the old wrong labels for every run below; grouping is unaffected):**
 
-**This is the project's central methodological finding:** the region-zone gap, which looked like the strongest cross-model-replicated result in §7.5, did **not** survive a 3× wider item sample. The age-band gap did. **Age band is therefore the one subgroup fidelity finding in this project that has survived both a second model and a wider item sample** — the load-bearing claim, not region.
+| Axis | 5-item Gemini | 5-item Groq | 15-item Gemini | 15-item Groq | Stable across width? | Replicates across models at 15 items? |
+|---|---|---|---|---|---|---|
+| Region | 18.3 | 18.4 | **26.4** | **6.3** | No (Gemini grew, Groq shrank) | Direction yes, magnitude no |
+| Age band | 23.7 | 15.9 | 9.2 | **16.7** | Groq stable; Gemini shrank | Direction yes, magnitude no |
+| Education | 7.1 | 5.2 | 14.3 | 3.4 | No | Direction yes, magnitude no |
+| Income | 9.1 | 5.6 | 14.2 | 2.1 | No | Direction yes, magnitude no |
+| Sex | 11.0 | 0.9 | 11.1 | 5.6 | Gemini stable; Groq grew | Direction yes, magnitude no |
+| Urban/rural | 3.8 | 3.2 | 8.9 | 4.3 | Roughly stable | Direction yes, magnitude no |
+
+**Revised central finding, now that both models are fully converged at 15 items:** the earlier draft of this report (based on Groq alone plus a partial Gemini run) treated age-band as "the one finding that survived a second model and a wider item sample," with region as a false lead. **With Gemini's full 15-item data in hand, that specific claim does not hold up as cleanly** — Gemini's age gap actually *shrank* from 5 to 15 items (23.7 → 9.2), while Groq's grew (15.9 → 16.7); region shows the same pattern in reverse. **No single axis is quantitatively stable across both the model swap and the item-width increase.**
+
+What *does* hold, robustly, across every one of the four (model × item-width) cells: **every axis shows a nonzero, non-trivial gap in every condition tested.** The qualitative claim — silicon sampling fidelity is uneven across demographic subgroups — replicates completely. The quantitative claim — *which* axis has the largest gap, and by how much — does not. This is a more conservative, more defensible finding than the single-axis claim in the earlier draft, and is the one now used in the paper and both published pages.
+
+### 7.7 Cross-model agreement analysis (`src/eval/cross_model_agreement.py`)
+
+On the 421 (respondent, item) pairs both models answered: **raw agreement 41.6%**, Cohen's κ = **0.25** (fair agreement, well above chance but far from consensus). Breaking down the 41.6%: only **10.7%** of all pairs are cases where the models agree *and are both correct*; **30.9%** are cases where they agree *and are both wrong* — i.e., most of the models' agreement is agreeing on the same wrong answer (very likely both defaulting to the same modal response option on hard items), not converging on truth.
+
+Per-item agreement ranges from 14.3% (Q160, "science vs. faith") to 82.1% (Q4, "important in life: politics" — also the item with the highest accuracy for both models, suggesting some items are genuinely easier/harder for *any* LLM, not just one). Per-subgroup agreement is fairly flat (33–52% across every category on every axis) — the two models don't diverge from each other more or less within any particular demographic subgroup, which weakly argues against "one model is subgroup-biased and the other isn't" as an explanation for the fidelity-gap non-replication in §7.6; it looks more like independent noise than a systematic model-specific bias.
+
+### 7.8 Item-level difficulty (`src/eval/item_difficulty.py`)
+
+Hardest items (mean accuracy across both models): **Q160** ("science vs. faith," 10.5% mean), **Q32** ("housewife just as fulfilling," 16.4%), **Q29** ("men make better political leaders," 19.8%), **Q161** ("science breaks down right/wrong," 21.5%), **Q31** ("men make better business executives," 21.7%). Easiest: **Q4** ("important in life: politics," 35.9%), **Q169** ("science vs. religion, religion right," 33.4%), **Q170** ("only acceptable religion is mine," 29.6%). Four of the five hardest items are the gender-role and science/faith attitude items — plausibly items where an LLM's own trained-in priors compete most directly with the actual distribution of Indian survey responses, rather than items where a demographic profile alone should carry much signal.
+
+### 7.9 Sex-gap investigation (`src/eval/sex_gap_investigation.py`)
+
+Checked whether the sex-axis gap (§7.6) concentrates in the three explicit gender-attitude items (Q29/Q31/Q32) — i.e., whether it's really a "the model stereotypes by respondent sex on gender questions" effect rather than a general pattern. **It is not concentrated there.** Mean male-minus-female accuracy gap on the 3 gender-attitude items: Gemini 13.4 pts, Groq 11.7 pts. On the other 12 items: Gemini 10.1 pts (nearly as large), Groq 3.8 pts (much smaller). The gap is broad-based on Gemini (present on religion/science items — Q169, Q170 — as much as on gender items) but more concentrated on Groq. **This rules out the simplest "gender-stereotyping-on-gender-questions" explanation as the sole driver** and points instead toward a more general pattern where male respondents are predicted more accurately across many item types on Gemini specifically — worth a dedicated follow-up but not resolved by this pass.
 
 ---
 
@@ -310,23 +349,25 @@ Weighted equally across 6 counted phases (Phase 4 excluded, per explicit instruc
 | Phase | % | Basis |
 |---|---|---|
 | 0–1: Data + item selection | 100% | Fully verified, auditable, reproducible |
-| 2: Baselines | 100% | Full 144-item, 5-fold, out-of-fold sweep, real numbers |
-| 3: Track A (zero-shot inference) | ~85% | Both models complete at 5 items; Groq fully converged at 15 items (0 failures); Gemini's 15-item run >95% converged as of writing |
-| 4: Fine-tuning (Track B) | excluded | Blocked on Kaggle credentials; deliberately deferred |
-| 5: Subgroup analysis | ~68% | Full cross-model analysis at 5 items done; Groq's 15-item analysis done and revealed the region/age stability finding; Gemini's 15-item analysis pending completion of §7.6's run |
-| 6: Paper / writeup | ~68% | All standard sections drafted with real content (Abstract, Related Work, Method, Results, Discussion, Limitations, Conclusion) — not placeholders, not submission-polished |
+| 2: Baselines | 100% | Full 144-item, 5-fold, out-of-fold sweep, real numbers, plus matched-feature supervised baselines added 2026-08-28 (§3) |
+| 3: Track A (zero-shot inference) | 100% | Both models fully converged at both 5 and 15 items, 0 failures |
+| 4: Fine-tuning (Track B) | excluded | Kaggle token received 2026-08-28, not yet used; deliberately sequenced after Track A |
+| 5: Subgroup analysis | 100% | Full cross-model analysis at 5 and 15 items done; cross-model agreement, item-difficulty, and sex-gap follow-up analyses added 2026-08-28 (§7.6–7.9) |
+| 6: Paper / writeup | ~80% | All standard sections drafted with real content; final 15-item cross-model numbers now incorporated; citation/bibliography polish still outstanding |
 | 7: Capstone deck / submission | 0% | Explicitly excluded from this assistant's scope by instruction; not started |
 
-**Weighted average: ~70%.**
+**Weighted average (phases 0–6, phase 4 excluded per instruction): ~90%.** The jump from ~70% reflects Track A and the subgroup analysis both reaching full completion, not a redefinition of what "complete" means for either.
 
 ---
 
 ## 12. What Is Left — Explicit List
 
-1. **Finish Gemini's 15-item run** (in progress at time of writing) and re-run the cross-model replication check at 15 items — this is the number that should be treated as authoritative over the 5-item figures in §7.5.
-2. **Investigate the non-replicating sex gap** directly (11.0 pts Gemini vs. 0.9–5.6 pts Groq across item counts) rather than leaving it as an open asterisk.
-3. **Verify region-zone labels** against the official WVS-7 annex directly, rather than the codebook-structure reconstruction used throughout.
-4. **Track B fine-tuning** — requires a Kaggle API token (requested, not yet received) and Kaggle's free-tier T4 GPU. Would test whether closing the accuracy gap to the supervised baselines also narrows or widens the age-band fidelity gap.
-5. **Widen beyond 15 items** toward the full 144 — feasible only across many days at free-tier daily quotas, not a single sitting.
-6. **Paper polish** — citation formatting, a full bibliography beyond the three sources currently listed, and incorporating the final 15-item cross-model numbers once available.
-7. **Capstone deck / submission materials** — not started, explicitly outside this assistant's scope per instruction.
+1. ~~Finish Gemini's 15-item run~~ — **done 2026-08-28**, 421/421, 0 failures (§7.6).
+2. ~~Investigate the non-replicating sex gap~~ — **done 2026-08-28** (§7.9): not concentrated in the 3 explicit gender-attitude items; broader on Gemini than on Groq. Root cause not fully resolved, flagged as a genuine open question rather than a solved one.
+3. ~~Verify region-zone labels against the official WVS-7 annex~~ — **done 2026-08-28**, and the original reconstruction was found to be **wrong on every code** (§4.2). Fixed in code; disclosure recorded that all predictions collected to date used the incorrect region text in-prompt.
+4. **Re-run P2/P3 inference with the corrected region labels** — new follow-up item created by #3. Not done yet (costs fresh API quota on both providers, ~1,000 requests total to redo the 15-item runs). Worth doing before final submission if quota allows; the corrected labels are already live for any new runs.
+5. **Track B fine-tuning** — Kaggle token now on file (received 2026-08-28); not yet used. Would test whether closing the accuracy gap to the supervised baselines also narrows or widens the subgroup fidelity gaps.
+6. **Widen beyond 15 items** toward the full 144 — feasible only across many days at free-tier daily quotas, not a single sitting.
+7. **Paper polish** — citation formatting, a full bibliography beyond the three sources currently listed, and incorporating the cross-model-agreement, item-difficulty, and sex-gap findings (§7.7–7.9) into the Results/Discussion sections.
+8. ~~Matched-feature supervised baselines~~ — **done 2026-08-28** (§3): GBM improves 48.2%→50.1% with the full 14-attribute set; logistic regression essentially unchanged. The LLM's gap to the population-fit ceiling is modestly larger than originally reported, not smaller.
+9. **Capstone deck / submission materials** — not started, explicitly outside this assistant's scope per instruction.

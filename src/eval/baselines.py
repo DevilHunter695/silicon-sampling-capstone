@@ -182,9 +182,17 @@ def evaluate_all_baselines(
     y_col: str = "answer",
     demo_cols: List[str] = None,
     weight_col: str = None,
+    matched_demo_cols: List[str] = None,
 ) -> Dict[str, Dict]:
     """
     Evaluate all baseline models on test set.
+
+    `demo_cols` drives cell_lookup (kept low-dimensional -- with the full
+    14-attribute LLM feature set almost every cell would be a singleton on
+    ~1.5k respondents, turning "lookup" into memorization). `matched_demo_cols`,
+    when given, is used for the supervised baselines (logistic/gbm) instead,
+    added as extra "logistic_matched"/"gbm_matched" entries -- this is the
+    baseline that actually gets the same information the LLM's P2 prompt did.
 
     Returns: {
         "uniform": {"accuracy": ..., "mae": ..., ...},
@@ -192,6 +200,8 @@ def evaluate_all_baselines(
         "cell_lookup": {...},
         "logistic": {...},
         "gbm": {...},
+        "logistic_matched": {...},  # only if matched_demo_cols given
+        "gbm_matched": {...},       # only if matched_demo_cols given
     }
     """
     if demo_cols is None:
@@ -237,6 +247,22 @@ def evaluate_all_baselines(
     y_pred = baseline_gbm.predict(df_test)
     probs = baseline_gbm.predict_proba(df_test)
     results["gbm"] = compute_metrics(y_test, y_pred, probs)
+
+    # 6/7. Matched-feature supervised baselines -- same demographic attributes
+    # the LLM's P2 prompt actually saw, for a fair "did the LLM beat a model
+    # with equal information" comparison.
+    if matched_demo_cols:
+        baseline_logistic_m = SupervisedClassifierBaseline("logistic")
+        baseline_logistic_m.fit(df_train, y_col, matched_demo_cols)
+        y_pred = baseline_logistic_m.predict(df_test)
+        probs = baseline_logistic_m.predict_proba(df_test)
+        results["logistic_matched"] = compute_metrics(y_test, y_pred, probs)
+
+        baseline_gbm_m = SupervisedClassifierBaseline("gbm")
+        baseline_gbm_m.fit(df_train, y_col, matched_demo_cols)
+        y_pred = baseline_gbm_m.predict(df_test)
+        probs = baseline_gbm_m.predict_proba(df_test)
+        results["gbm_matched"] = compute_metrics(y_test, y_pred, probs)
 
     logger.info("\n=== BASELINE RESULTS ===")
     for baseline_name, metrics in results.items():

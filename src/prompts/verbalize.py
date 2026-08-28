@@ -30,21 +30,24 @@ DEMOGRAPHIC_CODE_COLS = {
     "Q289": "religion",
 }
 
-# India's 8 WVS macro-zones (N_REGION_ISO), decoded from the ISO 3166-2:IN
-# annex referenced by the codebook. Not machine-parseable from the main
-# report text (it says "Country-specific list of codes in Annex" with no
-# annex included here) -- resolved by cross-referencing the WVS7 country file
-# structure. If verifying against the actual Annex PDF later, update this
-# table; nothing downstream depends on the exact wording.
+# India's 8 WVS sampling regions (N_REGION_ISO / ISO 3166-2:IN), taken
+# verbatim from the codebook's own Annex (data/raw/WVS7_Codebook_Variables_
+# report_V6.0.pdf, p.227 "INDIA" block) -- these are states/territory, not
+# macro-zones. An earlier version of this table guessed macro-zone names
+# (North/South/etc.) without having located the Annex; that guess was WRONG
+# on every code (e.g. 356028 is Uttar Pradesh, not "South zone") and has
+# been replaced with the verified Annex values below. See PROJECT_REPORT.md
+# for the disclosure that all P1-P3 predictions collected before this fix
+# were prompted with the incorrect zone guess for the region attribute.
 INDIA_REGION_LABELS = {
-    356004: "North zone",
-    356008: "North-East zone",
-    356015: "East zone",
-    356021: "Central zone",
-    356025: "West zone",
-    356028: "South zone",
-    356029: "South zone",
-    356034: "South zone",
+    356004: "Bihar",
+    356008: "Haryana",
+    356015: "Maharashtra",
+    356021: "Punjab",
+    356025: "Telangana",
+    356028: "Uttar Pradesh",
+    356029: "West Bengal",
+    356034: "Delhi",
 }
 
 LANGUAGE_LABELS = {"hi": "Hindi"}
