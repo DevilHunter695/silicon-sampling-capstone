@@ -2,6 +2,10 @@
 
 **Status: working draft.** Every number below is from a real, run pipeline — none are estimated or illustrative. Sections marked *[IN PROGRESS]* are being actively extended (item-sample widening, Track B fine-tuning) and will be updated as those complete; nothing here should be read as final.
 
+## Abstract
+
+Silicon sampling — conditioning an LLM on a demographic profile to simulate a survey respondent — has been validated in prior work mainly at the aggregate level, leaving open whether fidelity holds evenly across a population's internal diversity. We audit this for India using World Values Survey Wave 7 data (N=1,692), screening 373 candidate survey items against the official codebook down to 144 valid targets, and establishing a fair-comparison baseline suite (uniform through gradient-boosting) before any LLM inference. Two independent zero-shot models — Gemini 3.1 Flash Lite and OpenAI's open-weight gpt-oss-120b — converge on statistically indistinguishable accuracy (28.9% vs. 28.7%) and, more importantly, on a specific and partially-replicated pattern of subgroup fidelity gaps: an age-band gap of roughly 16 points that is stable across both models and across a 3x widening of the item sample, and a urban/rural gap that is consistently the smallest of the axes tested — counter to the common assumption that rural populations are where silicon sampling fails hardest. A region-zone gap that appeared large and cross-model-consistent at narrow item coverage shrank substantially once the item sample widened, a caveat we report rather than omit. We conclude that zero-shot silicon sampling for India has a real, model-independent accuracy ceiling well below a population-fit supervised baseline, and an uneven, but specific and testable, subgroup fidelity profile — with age, not urban/rural residence, as the most robust axis of concern found so far.
+
 ---
 
 ## 1. Introduction
@@ -91,6 +95,23 @@ Fidelity gap = best-performing demographic category's accuracy minus worst-perfo
 **Finding 2 — urban/rural, the axis silicon-sampling critiques most often target, shows the smallest gap in both models.** This is a specific, falsifiable claim rather than the more common blanket assertion that LLM-simulated respondents systematically misrepresent rural populations. Our data argues the more consistent failure mode here is regional and generational, not urban/rural.
 
 **Finding 3 — the sex gap does not replicate, and we report that rather than omit it.** Gemini shows an 11.0-point male-favoring gap; Groq shows 0.9 points. Presenting only the Gemini number would overstate a pattern that a second model does not support. We treat this as evidence the sex gap is model-specific behavior rather than a property of the underlying task or population.
+
+### 4.3 Item-count sensitivity — widening from 5 to 15 items materially changes the gap estimates
+
+The results in §4.1–4.2 use 5 items. We reran Groq gpt-oss-120b on 15 items (n=556, 40 respondents), all converged with zero unrecovered failures, to test whether the §4.2 gaps are stable as item coverage widens:
+
+| Axis | Groq gap, 5 items | Groq gap, 15 items | Stable? |
+|---|---|---|---|
+| **Age band** | 15.9 pts | 16.7 pts | **Yes — the most robust finding in this study** |
+| Sex | 0.9 pts | 5.6 pts | Grew, still modest |
+| **Region zone** | 18.4 pts | **6.3 pts** | **No — shrank by two-thirds** |
+| Urban / Rural | 3.2 pts | 4.3 pts | Roughly stable, still smallest or near-smallest |
+| Education band | 5.2 pts | 3.4 pts | Roughly stable |
+| Income tercile | 5.6 pts | 2.1 pts | Shrank |
+
+**This is itself a finding, and an important methodological caveat for §4.2:** the region-zone gap — the one we highlighted as "near-exact agreement across models" at 5 items — shrank substantially once the item sample widened, while the age-band gap held essentially constant (15.9 → 16.7 points). Read together, **age band is the one subgroup fidelity gap in this study that has survived both a second model and a wider item sample**; the region finding at 5 items now looks more likely to have been an artifact of that particular small item slice than a stable property of the model. Overall accuracy also shifted with the wider item set — 28.7% (5 items) → 23.7% (15 items, [20.3, 27.0]) — driven largely by four 10-point science-attitude items (Q109, Q160, Q161, Q162) with much higher error (MAE 3.2–4.0 vs. 0.8–1.2 for the 4-point items), consistent with the mechanical scale-size effect discussed in the item-selection methodology.
+
+*[IN PROGRESS: the matching 15-item widening for Gemini is still converging as of this draft; once complete, the cross-model replication check in the style of §4.2 will be re-run at 15 items, which is the number that should be treated as authoritative over the 5-item figures above.]*
 
 ## 5. Discussion
 
