@@ -20,6 +20,14 @@ We audit this for India using World Values Survey Wave 7 (WVS-7) data, stratifyi
 3. A codebook-grounded, auditable item-selection pipeline — every one of the 144 candidate survey items screened against the official WVS-7 documentation, not hand-picked.
 4. A released, reproducible pipeline (data processing, prompting, multi-provider inference, evaluation) parameterized so the same audit can be run for other countries or models.
 
+## 1.1 Related Work
+
+**Aggregate validation of silicon sampling.** Argyle et al. (2023) introduced the core technique — conditioning GPT-3 on demographic backstories to correlate with US voter behavior at r=0.82–0.89 — but validated only at the level of population-level correlation, not individual-respondent accuracy. WorldValuesBench (LREC-COLING 2024) built a large-scale multi-country benchmark from WVS data and reports strong zero-shot fit for large instruction-tuned models (up to ~75% by their "good fit" metric), but that metric is deliberately softer than exact-match on an individual's specific answer, and — directly relevant to our work — WorldValuesBench's own released codebook is built from a WVS release that predates India's inclusion, meaning no prior work using that resource could have covered India at all.
+
+**Subgroup and cross-cultural fidelity.** More recent work (e.g. a 2026 Singapore WVS study reporting 57.4% "subgroup-modal accuracy" — predicting a demographic cell's most common answer, not any individual's actual answer) has begun probing whether fidelity holds across national subgroups, but typically on English-heavy, high-income, low-diversity populations, and typically with a single model. Neither of these simplifications is available to us: India's linguistic, economic, and regional diversity is a large part of the reason a national-average fidelity number is uninformative, and a single-model result cannot distinguish "the technique fails here" from "this particular model fails here."
+
+**What this work adds.** We are, to our knowledge, the first to (a) measure *individual-level* exact-match fidelity for India specifically — not subgroup-modal or aggregate correlation, the harder and more decision-relevant metric; (b) require any subgroup finding to replicate across two independent models before reporting it as a claim about the technique; and (c) test whether findings are stable as item coverage widens, which our own results in §4.3 show is not a safe assumption to skip.
+
 ## 2. Data
 
 **Source:** World Values Survey Wave 7, India, v6.0 (worldvaluessurvey.org). India's fieldwork completed July 2023 and only entered the cross-national release at v6.0 — earlier releases contain no India data at all, a version dependency we verified directly rather than assumed.
@@ -121,19 +129,25 @@ The P0≈P2 pilot finding (§3.3) is worth surfacing on its own: if replicated a
 
 ## 6. Limitations
 
-- **Item coverage.** Results in §4 use 5 of the 144 selected items; a wider sample *[IN PROGRESS — extending to 15 items as of this draft]* is needed before treating the magnitude of any gap as precise, though the cross-model replication in §4.2 is a stronger check than item count alone would provide.
+- **Item coverage.** §4.1–4.2 use 5 of 144 selected items; §4.3 widens Groq to 15 and shows this materially changes gap estimates (region shrinks, age holds). *[IN PROGRESS: Gemini's matching 15-item run]* — until both models are compared at 15 items, treat the age-band finding as the load-bearing claim of this draft, not the region finding.
 - **Free-tier / non-frontier models.** Neither model tested is a frontier commercial system; whether this fidelity ceiling and gap pattern holds for larger models is untested.
 - **No calibrated token probabilities.** Neither provider exposed real per-token logprobs at this tier; distributional metrics beyond accuracy/MAE were not computed on calibrated probabilities.
 - **Region-zone naming.** WVS-7's official annex maps region codes to named zones; the eight zone labels used in reporting were reconstructed from the codebook's country structure rather than read directly from that annex, and should be re-verified before being treated as final in any submitted version.
 - **India's language variable is unusable as recorded.** Every respondent's interview-language field is coded identically (Hindi) regardless of actual fieldwork language, so a language-based subgroup axis — relevant given India's linguistic diversity — could not be tested from this data as released.
 - **No fine-tuning comparison yet.** *[IN PROGRESS]* Track B (adapting a model to this population via QLoRA fine-tuning) would test whether closing the accuracy gap to the supervised baselines also narrows or widens the region/age fidelity gap — an open question this draft does not yet answer.
 
-## 7. Next steps
+## 7. Conclusion
 
-1. Widen item coverage beyond 5 items (in progress).
+We set out to test a specific, decision-relevant question left open by prior silicon-sampling validation: not whether an LLM reproduces a population's opinions in aggregate, but whether it does so *evenly* across that population's internal diversity. For India, using WVS-7 and two independent zero-shot models, the answer is a qualified no — but a more specific and more defensible one than a single-model study could offer. Both models converge tightly on overall accuracy (~29%), both clear the naive baselines without approaching a population-fit supervised model, and both show a subgroup fidelity gap that is uneven rather than flat. Critically, not every piece of that unevenness survived scrutiny: subjecting our own initial region-zone finding to a wider item sample cut it by two-thirds, while the age-band gap held constant. We take this as the paper's methodological point as much as its empirical one — a subgroup fidelity claim in this space is only as strong as the replication and stability checks run against it, and single-model, single-item-slice results should be treated as hypotheses, not findings, until checked this way.
+
+The practical upshot for anyone considering silicon sampling on Indian survey data: expect a real, model-independent accuracy ceiling well under 30% for individual-level prediction with today's free-tier zero-shot models, expect that ceiling to sit below what a simple demographic lookup fit to real data would achieve, and expect the technique's reliability to vary by age band specifically — not, on this evidence, primarily by urban/rural residence, the axis most commonly assumed to be the weak point.
+
+## 8. Next steps
+
+1. Complete the matching Gemini 15-item run and re-run the cross-model replication check at 15 items (in progress).
 2. Investigate the non-replicating sex gap directly rather than leaving it as an open question.
 3. Verify region-zone labels against the official WVS-7 annex.
-4. Track B: QLoRA fine-tune on Kaggle's free-tier T4 GPUs; test whether fine-tuning narrows or widens the region/age fidelity gap (Δ_gap).
+4. Track B: QLoRA fine-tune on Kaggle's free-tier T4 GPUs; test whether fine-tuning narrows or widens the age-band fidelity gap (Δ_gap) — the gap this draft's evidence says is the real one to target.
 
 ## References
 
