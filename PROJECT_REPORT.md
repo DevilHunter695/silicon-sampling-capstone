@@ -2,7 +2,7 @@
 
 **Purpose of this document:** a single, complete, parameter-by-parameter account of everything done in this project, in the order it was done, with every threshold, every bug found and fixed, every real result, and an honest accounting of what remains. Written so the entire project can be judged and reproduced from this document alone, without needing to read the conversation history it came from.
 
-**Status as of writing (2026-08-28):** ~90% complete against the project's own 7-phase plan (Phase 4/fine-tuning excluded from that figure — deferred by explicit instruction, not incomplete work). Track A inference and subgroup analysis are now fully converged on both models at both item widths (5 and 15 items). See §11 for the full breakdown.
+**Status as of writing (2026-08-29):** ~92% complete against the project's own 7-phase plan (Phase 4/fine-tuning excluded from that figure — deferred by explicit instruction, not incomplete work). Track A inference and subgroup analysis are fully converged on both models at both item widths (5 and 15 items), with the region-label bug found, fixed, and the affected predictions fully re-run. See §11 for the full breakdown.
 
 ---
 
@@ -130,7 +130,23 @@ Implemented in `src/eval/baselines.py`, orchestrated in `src/eval/run_baselines.
 
 **Region labels — found wrong, now fixed (2026-08-28):** WVS-7's official annex maps 8-digit `N_REGION_ISO` codes to India's 8 sampled states/territory. An earlier version of this table did not locate the annex (it appeared, from the extracted codebook text, to say only "country-specific list of codes in Annex" with no annex included) and substituted a guessed macro-zone scheme (North/South/East/etc.). On locating the actual annex (`data/raw/WVS7_Codebook_Variables_report_V6.0.pdf`, p.227, "INDIA" block), **every one of those 8 guessed labels was wrong** — e.g. code `356028` is **Uttar Pradesh**, not "South zone." The table has been corrected to the verified annex values (356004 Bihar, 356008 Haryana, 356015 Maharashtra, 356021 Punjab, 356025 Telangana, 356028 Uttar Pradesh, 356029 West Bengal, 356034 Delhi).
 
-**Disclosure:** every P1/P2/P3 prediction collected before this fix (all results in §7 below) was prompted with the **wrong** region text for the `region` attribute — e.g. a Uttar Pradesh respondent's prompt said "South zone" instead of "Uttar Pradesh." This does not affect the *subgroup grouping* used in fidelity-gap analysis (that groups on the raw `N_REGION_ISO` code, computed independently of the label text — see `src/eval/subgroups.py`), only what the LLM was actually *told* about the respondent's region as one of 14 demographic attributes. Net effect: the region attribute's contribution to P2/P3 prompts was noise rather than signal throughout this project to date. A fix-and-rerun is listed in §12 as follow-up work, not yet done (would cost fresh API quota on both providers).
+**Disclosure:** every P1/P2/P3 prediction collected before this fix was prompted with the **wrong** region text for the `region` attribute — e.g. a Uttar Pradesh respondent's prompt said "South zone" instead of "Uttar Pradesh." This does not affect the *subgroup grouping* used in fidelity-gap analysis (that groups on the raw `N_REGION_ISO` code, computed independently of the label text — see `src/eval/subgroups.py`), only what the LLM was actually *told* about the respondent's region as one of 14 demographic attributes.
+
+**Re-run complete (2026-08-29):** both models' 15-item P2 predictions were regenerated with corrected region labels — Gemini 421/421, Groq 556/556, both fully converged, 0 failures. The corrected numbers **did move non-trivially**, confirming this needed an actual re-run rather than an assumption that "grouping was always correct so nothing changes":
+
+| | Gemini — before fix | Gemini — after fix | Groq — before fix | Groq — after fix |
+|---|---|---|---|---|
+| Accuracy | 24.9% | **25.7%** [21.9, 29.9] | 23.5%* | **23.0%** [19.6, 26.3] |
+| Region gap | 26.4 pts | **19.7 pts** | 6.3 pts | **7.9 pts** |
+| Education gap | 14.3 pts | **13.2 pts** | 3.4 pts | **6.1 pts** |
+| Income gap | 14.2 pts | **10.2 pts** | 2.1 pts | **3.3 pts** |
+| Sex gap | 11.1 pts | **10.4 pts** | 5.6 pts | **0.1 pts (essentially gone)** |
+| Age gap | 9.2 pts | **8.8 pts** | 16.7 pts | **13.6 pts** |
+| Urban/rural gap | 8.9 pts | **4.3 pts (halved)** | 4.3 pts | **2.4 pts** |
+
+*Groq's "before" accuracy shown here is on the 421-row Gemini-overlap subset from the previous evaluation pass, for direct comparability.
+
+**All figures elsewhere in this report and in `paper/DRAFT.md` are now updated to these corrected values.** The two most notable individual shifts: Groq's sex gap effectively disappeared (5.6→0.1 points) and Gemini's urban/rural gap halved (8.9→4.3) — both are exactly the kind of change a wrong-but-grouping-preserving label bug *shouldn't* have caused if the region attribute contributed no signal at all, which suggests the region text did carry some real (if noisy) information the model was using, not pure noise as the original disclosure speculated. This is now flagged as worth a closer look, not fully explained.
 
 **India's language variable is unusable as recorded:** both `S_INTLANGUAGE` and `LNGE_ISO` are constant (`hi`/Hindi) across all 1,692 respondents, with no second language field anywhere in the 613 columns. Verified directly, not assumed. A language-based subgroup axis — relevant given India's linguistic diversity — cannot be tested from this data as released.
 
@@ -250,48 +266,48 @@ Every bug found during this project, in the order discovered, all fixed and comm
 | Urban / Rural | 3.8 pts | 3.2 pts | Yes — smallest in both |
 | Sex | 11.0 pts | 0.9 pts | **No** |
 
-### 7.6 Item-widening run, 15 items — both models now fully converged
+### 7.6 Item-widening run, 15 items — both models fully converged, corrected region labels (final, 2026-08-29)
 
-Both providers re-run on the same 15 items (Groq: n=556, 40 respondents; Gemini: n=421, 30 respondents, a strict subset of Groq's 40) to test whether §7.5's gaps are stable as item coverage widens. **Gemini's run finished converging on 2026-08-28: 421/421 predictions, 0 failures.**
+Both providers re-run on the same 15 items (Groq: n=556, 40 respondents; Gemini: n=421, 30 respondents, a strict subset of Groq's 40) to test whether §7.5's gaps are stable as item coverage widens. **Both models fully converged with the corrected region labels (§4.2) on 2026-08-29: Gemini 421/421, Groq 556/556, 0 failures.** These are the final numbers; the intermediate wrong-region-label pass is superseded.
 
 | | Gemini (15 items) | Groq (15 items) |
 |---|---|---|
 | n | 421 | 556 |
-| Accuracy | 24.9% | 23.5% (on the 421-row Gemini-overlap subset; 23.7% on its full n=556) |
-| 95% CI | [20.9, 28.7] | [20.3, 27.0] |
-| MAE | 1.66 | ~1.6 (comparable) |
+| Accuracy | **25.7%** | **23.0%** (23.3% on the 421-row Gemini-overlap subset) |
+| 95% CI | [21.9, 29.9] | [19.6, 26.3] |
+| MAE | 1.71 | 1.62 |
 | Refusal rate | 0.0% | 0.0% |
-| Beats national-marginal baseline | 9/15 items | — |
-| Beats demographic-cell baseline | 8/15 items | — |
+| Beats national-marginal baseline | 10/15 items | 9/15 items |
+| Beats demographic-cell baseline | 10/15 items | 7/15 items |
 
-**Subgroup fidelity gaps, 15 items, both models (region labels are the corrected, actual-annex values from §4.2 — but see the disclosure there: the *prompt text itself* used the old wrong labels for every run below; grouping is unaffected):**
+**Subgroup fidelity gaps, 15 items, both models, corrected region labels:**
 
-| Axis | 5-item Gemini | 5-item Groq | 15-item Gemini | 15-item Groq | Stable across width? | Replicates across models at 15 items? |
-|---|---|---|---|---|---|---|
-| Region | 18.3 | 18.4 | **26.4** | **6.3** | No (Gemini grew, Groq shrank) | Direction yes, magnitude no |
-| Age band | 23.7 | 15.9 | 9.2 | **16.7** | Groq stable; Gemini shrank | Direction yes, magnitude no |
-| Education | 7.1 | 5.2 | 14.3 | 3.4 | No | Direction yes, magnitude no |
-| Income | 9.1 | 5.6 | 14.2 | 2.1 | No | Direction yes, magnitude no |
-| Sex | 11.0 | 0.9 | 11.1 | 5.6 | Gemini stable; Groq grew | Direction yes, magnitude no |
-| Urban/rural | 3.8 | 3.2 | 8.9 | 4.3 | Roughly stable | Direction yes, magnitude no |
+| Axis | 5-item Gemini | 5-item Groq | 15-item Gemini | 15-item Groq | Replicates across models at 15 items? |
+|---|---|---|---|---|---|
+| Region | 18.3 | 18.4 | 19.7 | 7.9 | Direction yes, magnitude no |
+| Age band | 23.7 | 15.9 | 8.8 | 13.6 | Direction yes, magnitude no |
+| Education | 7.1 | 5.2 | 13.2 | 6.1 | Direction yes, magnitude no |
+| Income | 9.1 | 5.6 | 10.2 | 3.3 | Direction yes, magnitude no |
+| Sex | 11.0 | 0.9 | 10.4 | **0.1 (essentially gone)** | Gemini only |
+| Urban/rural | 3.8 | 3.2 | 4.3 | 2.4 | Direction yes, magnitude no |
 
-**Revised central finding, now that both models are fully converged at 15 items:** the earlier draft of this report (based on Groq alone plus a partial Gemini run) treated age-band as "the one finding that survived a second model and a wider item sample," with region as a false lead. **With Gemini's full 15-item data in hand, that specific claim does not hold up as cleanly** — Gemini's age gap actually *shrank* from 5 to 15 items (23.7 → 9.2), while Groq's grew (15.9 → 16.7); region shows the same pattern in reverse. **No single axis is quantitatively stable across both the model swap and the item-width increase.**
+**What changed from the wrong-region-label pass, and what it means:** correcting the region text moved every number, some substantially — Gemini's region gap fell from 26.4 to 19.7, Groq's sex gap fell from 5.6 to essentially zero (0.1), Gemini's urban/rural gap halved (8.9 → 4.3). This is itself informative: if the region attribute had been pure noise in the prompt (as the original bug disclosure speculated), fixing it should not have moved *other* axes' gaps this much. The fact that it did suggests the region text was carrying some real, if noisy, signal the model was using in ways that interacted with other demographic axes — a finding worth its own follow-up, not fully explained by this project.
 
-What *does* hold, robustly, across every one of the four (model × item-width) cells: **every axis shows a nonzero, non-trivial gap in every condition tested.** The qualitative claim — silicon sampling fidelity is uneven across demographic subgroups — replicates completely. The quantitative claim — *which* axis has the largest gap, and by how much — does not. This is a more conservative, more defensible finding than the single-axis claim in the earlier draft, and is the one now used in the paper and both published pages.
+**Central finding, unchanged by the correction:** no single axis has a quantitatively stable ranking across the model swap and the item-width increase — region, age, education, income, and urban/rural all move non-trivially between cells. What *does* hold, robustly, across every cell: **every axis shows a nonzero, non-trivial gap in every condition tested**, with the sole exception of Groq's sex gap at 15 items, which is now close enough to zero to call a genuine non-finding. The qualitative claim — silicon sampling fidelity is uneven across demographic subgroups — replicates. Which axis, and by how much, remains model- and sample-dependent.
 
-### 7.7 Cross-model agreement analysis (`src/eval/cross_model_agreement.py`)
+### 7.7 Cross-model agreement analysis (`src/eval/cross_model_agreement.py`) — final, corrected labels
 
-On the 421 (respondent, item) pairs both models answered: **raw agreement 41.6%**, Cohen's κ = **0.25** (fair agreement, well above chance but far from consensus). Breaking down the 41.6%: only **10.7%** of all pairs are cases where the models agree *and are both correct*; **30.9%** are cases where they agree *and are both wrong* — i.e., most of the models' agreement is agreeing on the same wrong answer (very likely both defaulting to the same modal response option on hard items), not converging on truth.
+On the 421 (respondent, item) pairs both models answered: **raw agreement 36.8%**, Cohen's κ = **0.18** (positive but weak — noticeably lower than the pre-fix 0.25). Breaking down the 36.8%: only **9.3%** of all pairs are cases where the models agree *and are both correct*; **27.6%** are cases where they agree *and are both wrong* — the models' agreement is still overwhelmingly agreement on the same wrong answer, not convergence on truth, and this pattern got slightly *more* pronounced after the region-label fix, not less.
 
-Per-item agreement ranges from 14.3% (Q160, "science vs. faith") to 82.1% (Q4, "important in life: politics" — also the item with the highest accuracy for both models, suggesting some items are genuinely easier/harder for *any* LLM, not just one). Per-subgroup agreement is fairly flat (33–52% across every category on every axis) — the two models don't diverge from each other more or less within any particular demographic subgroup, which weakly argues against "one model is subgroup-biased and the other isn't" as an explanation for the fidelity-gap non-replication in §7.6; it looks more like independent noise than a systematic model-specific bias.
+Per-item agreement ranges from 3.6% (Q160, "science vs. faith" — down further from 14.3% pre-fix) to 68.9% (Q137, "street violence in neighborhood"). Q4 ("important in life: politics") remains among the highest-agreement, highest-accuracy items for both models, reinforcing that some items are intrinsically easier for any LLM tested here, independent of the region-label bug.
 
-### 7.8 Item-level difficulty (`src/eval/item_difficulty.py`)
+### 7.8 Item-level difficulty (`src/eval/item_difficulty.py`) — final, corrected labels
 
-Hardest items (mean accuracy across both models): **Q160** ("science vs. faith," 10.5% mean), **Q32** ("housewife just as fulfilling," 16.4%), **Q29** ("men make better political leaders," 19.8%), **Q161** ("science breaks down right/wrong," 21.5%), **Q31** ("men make better business executives," 21.7%). Easiest: **Q4** ("important in life: politics," 35.9%), **Q169** ("science vs. religion, religion right," 33.4%), **Q170** ("only acceptable religion is mine," 29.6%). Four of the five hardest items are the gender-role and science/faith attitude items — plausibly items where an LLM's own trained-in priors compete most directly with the actual distribution of Indian survey responses, rather than items where a demographic profile alone should carry much signal.
+Hardest items (mean accuracy across both models): **Q160** ("science vs. faith," ~9% mean — the hardest item in the battery by a wide margin), **Q162** ("not important to know about science," ~17%), **Q109** ("competition good or harmful," ~20%), **Q29** ("men make better political leaders," ~21%), **Q32** ("housewife just as fulfilling," ~21%). Easiest: **Q4** ("important in life: politics," ~40% mean), **Q169** ("science vs. religion, religion right," ~36%), **Q170** ("only acceptable religion is mine," ~30%). The science/faith and gender-role items remain the hardest cluster after the correction — this ranking is stable to the region-label fix, unlike the subgroup gaps in §7.6.
 
-### 7.9 Sex-gap investigation (`src/eval/sex_gap_investigation.py`)
+### 7.9 Sex-gap investigation (`src/eval/sex_gap_investigation.py`) — final, corrected labels
 
-Checked whether the sex-axis gap (§7.6) concentrates in the three explicit gender-attitude items (Q29/Q31/Q32) — i.e., whether it's really a "the model stereotypes by respondent sex on gender questions" effect rather than a general pattern. **It is not concentrated there.** Mean male-minus-female accuracy gap on the 3 gender-attitude items: Gemini 13.4 pts, Groq 11.7 pts. On the other 12 items: Gemini 10.1 pts (nearly as large), Groq 3.8 pts (much smaller). The gap is broad-based on Gemini (present on religion/science items — Q169, Q170 — as much as on gender items) but more concentrated on Groq. **This rules out the simplest "gender-stereotyping-on-gender-questions" explanation as the sole driver** and points instead toward a more general pattern where male respondents are predicted more accurately across many item types on Gemini specifically — worth a dedicated follow-up but not resolved by this pass.
+Re-checked whether the sex-axis gap concentrates in the three explicit gender-attitude items (Q29/Q31/Q32) now that Groq's overall sex gap has collapsed to near-zero (§7.6). Mean male-minus-female accuracy gap on the 3 gender-attitude items: Gemini 11.3 pts (essentially unchanged from pre-fix), Groq 10.8 pts (still substantial). On the other 12 items: Gemini 9.6 pts (still broad-based, similar to before), Groq **−3.2 pts (essentially flipped — female respondents now slightly more accurate on the non-gender items)**. **Corrected picture:** Groq's overall near-zero sex gap (§7.6) is masking two opposing effects that cancel out — a real, persistent gender-role-item gap (10.8 pts, male-favoring) offset by a reversed pattern on other items (3.2 pts, female-favoring). Gemini shows no such cancellation — its gap is genuinely broad-based across item types. This is a more precise and more interesting finding than either "Groq has no sex gap" or "Gemini stereotypes more" — the honest read is that Groq's aggregate sex gap number is not a safe summary of what's actually happening underneath it.
 
 ---
 
@@ -356,7 +372,7 @@ Weighted equally across 6 counted phases (Phase 4 excluded, per explicit instruc
 | 6: Paper / writeup | ~80% | All standard sections drafted with real content; final 15-item cross-model numbers now incorporated; citation/bibliography polish still outstanding |
 | 7: Capstone deck / submission | 0% | Explicitly excluded from this assistant's scope by instruction; not started |
 
-**Weighted average (phases 0–6, phase 4 excluded per instruction): ~90%.** The jump from ~70% reflects Track A and the subgroup analysis both reaching full completion, not a redefinition of what "complete" means for either.
+**Weighted average (phases 0–6, phase 4 excluded per instruction): ~92%.** What's left before this is fully closed out: paper citation/bibliography polish, and Track B fine-tuning (deferred, now unblocked by university AI Lab access — see §12).
 
 ---
 
@@ -365,7 +381,7 @@ Weighted equally across 6 counted phases (Phase 4 excluded, per explicit instruc
 1. ~~Finish Gemini's 15-item run~~ — **done 2026-08-28**, 421/421, 0 failures (§7.6).
 2. ~~Investigate the non-replicating sex gap~~ — **done 2026-08-28** (§7.9): not concentrated in the 3 explicit gender-attitude items; broader on Gemini than on Groq. Root cause not fully resolved, flagged as a genuine open question rather than a solved one.
 3. ~~Verify region-zone labels against the official WVS-7 annex~~ — **done 2026-08-28**, and the original reconstruction was found to be **wrong on every code** (§4.2). Fixed in code; disclosure recorded that all predictions collected to date used the incorrect region text in-prompt.
-4. **Re-run P2/P3 inference with the corrected region labels** — new follow-up item created by #3. Not done yet (costs fresh API quota on both providers, ~1,000 requests total to redo the 15-item runs). Worth doing before final submission if quota allows; the corrected labels are already live for any new runs.
+4. ~~Re-run P2/P3 inference with the corrected region labels~~ — **done 2026-08-29** (§7.6): both models fully converged, 0 failures, numbers moved non-trivially (confirming this was worth doing rather than assuming), all follow-up analyses (§7.7–7.9) re-run to match.
 5. **Track B fine-tuning** — Kaggle token now on file (received 2026-08-28); not yet used. Would test whether closing the accuracy gap to the supervised baselines also narrows or widens the subgroup fidelity gaps.
 6. **Widen beyond 15 items** toward the full 144 — feasible only across many days at free-tier daily quotas, not a single sitting.
 7. **Paper polish** — citation formatting, a full bibliography beyond the three sources currently listed, and incorporating the cross-model-agreement, item-difficulty, and sex-gap findings (§7.7–7.9) into the Results/Discussion sections.
