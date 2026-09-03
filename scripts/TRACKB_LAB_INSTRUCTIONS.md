@@ -1,80 +1,117 @@
-# Track B fine-tuning — running this at the AI Lab
+# Track B fine-tuning at the AI Lab — READ THIS FULLY BEFORE STARTING
 
-## What to bring / copy over
+This is a one-shot, expensive run. The sequence below exists specifically so a
+mistake costs you 10 minutes of preflight, not hours of wasted GPU time.
+**Do not skip a step because "it'll probably be fine."**
 
-Copy the whole repo, or at minimum these paths, onto the lab machine (a USB stick is the
-cleanest way to move `data/` — it's under 1MB total, and it avoids sending real respondent
-data over any network or third-party service):
+## 0. Before you leave for the lab
 
-```
-src/
-scripts/
-data/processed/ind_wvs7.parquet
-data/processed/selected_items.json
-data/processed/folds.json
-data/reference/wvs7_codebook.json
-```
+- Copy the whole repo, or at minimum: `src/`, `scripts/`, `data/processed/`,
+  `data/reference/wvs7_codebook.json`. A USB stick is fine — the data is
+  under 1MB.
+- Have this file and `trackB_finetune.py` on hand.
 
-## One-time setup on the lab machine
+## 1. One-time environment setup
 
 ```bash
 pip install -r scripts/trackB_requirements.txt
+pip install huggingface_hub
 ```
 
-If `openai/gpt-oss-120b` needs a Hugging Face login/token to download, run
-`huggingface-cli login` first (only needed once).
+If `openai/gpt-oss-120b` needs authentication to download:
+```bash
+huggingface-cli login
+```
 
-## Step 1 — smoke test (do this first, ~5 minutes)
+**Start a `tmux` session now, before anything else.** Everything from here on
+runs inside it, so an SSH disconnect doesn't kill your job:
 
-This trains on 5 respondents × 3 items instead of the real run, purely to catch any
-environment/path/import problems before spending real GPU time:
+```bash
+tmux new -s trackb
+```
+
+(To reattach later if you get disconnected: `tmux attach -t trackb`)
+
+## 2. Preflight check — MANDATORY, do not skip
+
+```bash
+python -m scripts.trackB_finetune --preflight
+```
+
+Takes ~5–10 minutes. This checks CUDA, GPU count and memory, disk space, that
+the data files are actually present, that Hugging Face Hub is reachable, and
+— the important part — **actually loads the real model in 4-bit and runs one
+real training step**, to prove the whole stack fits before you commit further.
+
+- **If this fails: stop. Read the error. Do not proceed to the smoke test or
+  real run.** Send me the output — this is exactly the kind of failure that's
+  cheap to fix now and expensive to discover 6 hours into a real run.
+- If it passes, it prints the peak GPU memory used during that one step —
+  useful context if we need to debug memory headroom later.
+
+## 3. Smoke test — MANDATORY, do not skip
 
 ```bash
 python -m scripts.trackB_finetune --smoke-test
 ```
 
-If this fails, send me the full output — don't try to debug CUDA/dependency errors
-yourself, that's what I'm for.
+~10–20 minutes. Runs the full pipeline (data build → train → save → predict →
+write output) on a tiny slice (5 train respondents, 5 test respondents, 3
+items), including a checkpoint save/reload, so any data or schema bug shows
+up here instead of after the real run has been going for hours.
 
-## Step 2 — real run, fold 0, 15 items (matches Track A's item set exactly)
+If this fails, same rule: stop, send me the output, don't guess at a fix.
+
+## 4. The real run
 
 ```bash
 python -m scripts.trackB_finetune --fold 0 --n-items 15
 ```
 
-This will:
-1. Build ~15,000 training examples (≈1,353 train respondents × 15 items) using the
-   *exact same* prompt-building code Track A used for its zero-shot runs — the only
-   difference from Track A is that this model has now seen real WVS-7 answers during
-   training, not zero real answers.
-2. QLoRA fine-tune `openai/gpt-oss-120b` (4-bit, LoRA rank 16) for 2 epochs.
-3. Predict on the held-out 339 test respondents for the same 15 items — genuinely
-   out-of-fold, this model never saw these respondents during training.
-4. Save predictions to `results/predictions/trackB_openai_gpt-oss-120b_fold0_P2.parquet`
-   in the exact same format Track A's predictions use.
-5. Print a final summary block with accuracy — copy/paste that back to me.
+(You're already inside `tmux`, so this survives disconnects on its own. You
+can also add `nohup ... &` as extra insurance, but tmux is the primary
+safety net here, not optional.)
 
-Runs in the background survive a disconnect if you use `tmux` or `nohup`:
+**If the run dies or the machine reboots partway through: run the exact same
+command again.** It automatically finds the latest checkpoint in
+`./trackB_output` and resumes from there — it does NOT start over. This is
+true whether it died from an OOM, a crash, a preemption, or you had to
+close the session.
+
+**If it hits a GPU-memory error mid-run:** the script catches this itself,
+halves the batch size, and retries automatically — you shouldn't need to do
+anything. If it still fails after retrying down to batch size 1, it will
+tell you clearly and stop; at that point send me the log rather than trying
+to hand-tune batch size yourself.
+
+## 5. Checking progress without babysitting it
+
+From another terminal (or another `tmux` pane), at any point:
 
 ```bash
-nohup python -m scripts.trackB_finetune --fold 0 --n-items 15 > trackB.log 2>&1 &
+cat trackB_status.json
 ```
 
-Progress and the final summary both land in `trackB_run.log` (and `trackB.log` if you
-used the nohup form) — send me either file, or just the tail of it, when it's done.
+This is a small file the script keeps overwriting with its current phase,
+so you don't have to read the full log to know if it's still alive and
+roughly where it is.
 
-## If it runs out of memory
+## 6. When it's done
 
-`openai/gpt-oss-120b` in 4-bit is a big model — if it doesn't fit even across both H100s
-(`device_map="auto"` should split it automatically, but lab GPU availability/VRAM headroom
-is genuinely unknown to me), the fallback is a smaller open model. Tell me if this happens
-and I'll give you a one-line command swap (e.g. `--model openai/gpt-oss-20b` or a
-Llama/Qwen alternative) — don't guess at it yourself.
+The final summary prints to the terminal and to `trackB_run.log`, and
+`trackB_status.json` will show `"phase": "complete"`. Send me:
 
-## What to send back
-
-- The final summary block (accuracy, n predictions, refusal rate)
-- The `trackB_run.log` file (or just paste the last ~50 lines)
-- The output `.parquet` file if you can get it off the lab machine (same USB stick works)
-  — I need this to run the same subgroup fidelity analysis as Track A, not just the
+- The full `trackB_status.json` (has the final accuracy/n/refusal numbers)
+- `trackB_run.log` (or at least the last ~100 lines)
+- The output file: `results/predictions/trackB_openai_gpt-oss-120b_fold0_P2.parquet`
+  — get this off the lab machine (same USB stick). I need the actual
+  predictions file to run the subgroup fidelity analysis, not just the
   headline accuracy number.
+
+## If anything looks wrong that isn't covered above
+
+**Stop and send me what you're seeing before trying to fix it yourself.**
+The whole point of the preflight/smoke-test sequence is that by the time
+you're in the real run, surprises should be rare — if one happens anyway,
+diagnosing it correctly matters more than diagnosing it fast, especially
+with real lab-time cost on the line.
