@@ -165,3 +165,10 @@ All numbers are generated from `paper/ieee/analysis/*.json`. A hostile-review an
 **Not done / open:** second seed or fold; broader training; frontier-API zero-shot beyond gpt-oss-120b (100 respondents);
 survey weights; 2027 venue deadlines unverified.
 **Data rules:** WVS microdata are not redistributed; `.env` is git-ignored; do not commit adapters or raw Kaggle outputs.
+
+### Update 2026-10-13 (evening): overnight plan
+* Friend's account: breadth seed 0 running, then seed 2 queued (`kaggle_experiments/friend_queue_cell.py`).
+* User's account (commit mode, `kaggle_experiments/overnight_user_account.ipynb`): faithful lab adapter on 32 unseen items (items 8:40, 1,000 respondents),
+  zero-shot Qwen2.5-14B and 32B scale check, breadth seed 1.
+* Morning analysis: `kaggle_experiments/morning.sh <folder of zips>` (see `README_OVERNIGHT.md`). Pre-specified analyses are in `PREREGISTERED_ANALYSIS.md`.
+* Distributional fidelity (JSD) added to draft 2 (`distributional_fidelity.py`): fine-tuned 0.009 (religion) vs logistic 0.004, zero-shot 0.27.

@@ -14,7 +14,7 @@ D = {
     "wm": J("wvs_matched.json"), "pe": J("pew_results.json"), "px": J("pew_extra.json"), "pd": J("pew_dispersion.json"),
     "zs": J("zs_eval.json"), "wq": J("wvs_qwen_eval.json"), "wn": J("wvs_null.json"), "w144": J("wvs_mode144.json"),
     "gc": J("pew_gap_closed.json"), "wr": J("wvs_results.json"), "we": J("wvs_extra.json"), "mo": J("pew_mae_ordinal.json"), "zc": J("zs_calib.json"), "zp": J("zs_p0.json"), "dr": J("pew_direction.json"), "wd": J("wvs_direction.json"), "ae": J("adapter_eval.json"), "did": J("transfer_did.json"),
-    "api": J("api_eval.json"), "ff": J("fold0_full.json"), "tb": J("tuned_baselines.json"), "lcb": J("lc_baselines.json"), "lce": J("lc_eval.json"),
+    "api": J("api_eval.json"), "ff": J("fold0_full.json"), "dist": J("distributional.json"), "tb": J("tuned_baselines.json"), "lcb": J("lc_baselines.json"), "lce": J("lc_eval.json"),
 }
 
 

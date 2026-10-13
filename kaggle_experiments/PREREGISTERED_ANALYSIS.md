@@ -8,3 +8,10 @@ Primary comparisons (respondent-clustered bootstrap, 2,000 draws, 95% CI), accur
 5. Secondary: item-centred directional validity (religion, region, sex), near vs far held-out items (same battery in training or not), P0 control.
 Rules: no model/run selection on test accuracy; all seeds and runs are reported; a negative or null result is reported as such; claims are limited to what the CIs support.
 Fold-0 full-run analysis (fold0_full_analysis.py): accuracy, NLL, ECE, paired differences, fixed 50/50 FT+GBM average, direction, Q12 behaviour, agreement with lab predictions.
+
+## Addendum (2026-10-13, before the overnight results existed)
+6. Unseen-item test on the faithful lab adapter (items 8:40, 1,000 respondents): adapter minus base accuracy, adapter minus majority,
+   and NLL differences, with a two-way (respondent and item) cluster bootstrap; near items (same battery as a trained item) vs far items reported separately.
+7. Model scale: zero-shot Qwen2.5 7B / 14B / 32B Instruct on the same Pew rows (items 0:8; 500 respondents for 14B, 300 for 32B), accuracy and NLL vs the majority class.
+8. Breadth experiment replication: seeds 0, 1, 2 (each a different 2,000-respondent pool and sample), reported per seed and averaged; no seed is dropped.
+9. Distributional fidelity: mean Jensen-Shannon divergence between predicted and true subgroup distributions (distributional_fidelity.py).
