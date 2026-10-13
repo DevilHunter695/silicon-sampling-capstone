@@ -80,3 +80,9 @@ paper/*.bbl
 paper/*.blg
 paper/*.fdb_latexmk
 paper/*.fls
+
+# Raw Kaggle model outputs and local scratch
+paper/ieee/analysis/kaggle_fold0_out/
+*.zip
+paper/ieee/analysis/*wvs*.jsonl
+paper/ieee/analysis/*wvs*.parquet

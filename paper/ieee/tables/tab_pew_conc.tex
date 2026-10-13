@@ -1,0 +1,12 @@
+\setlength{\tabcolsep}{2.6pt}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+\textbf{Predictor} & \textbf{Top share} & \textbf{TV} & \textbf{SD ret.} & \textbf{Gap infl.} \\
+\midrule
+True answers & 0.31 & 0.00 & 1.00 & 1.00 \\
+Majority class & 1.00 & 0.69 & 0.00 & 0.0$\times$ \\
+Logistic regression & 0.55 & 0.31 & 0.96 & 2.6$\times$ \\
+Gradient boosting & 0.51 & 0.25 & 0.97 & 2.0$\times$ \\
+Fine-tuned Qwen2.5-7B & 0.60 & 0.38 & 0.96 & 2.0$\times$ \\
+\bottomrule
+\end{tabular}

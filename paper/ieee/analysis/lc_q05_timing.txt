@@ -1,0 +1,2 @@
+N=25 train_seconds=489
+N=100 train_seconds=1661

@@ -1,0 +1,252 @@
+{
+ "25": {
+  "majority": {
+   "acc_first_subset": 0.2842377260981912,
+   "acc_ci": [
+    0.2643273113796047,
+    0.3055243869182624
+   ],
+   "nll_first_subset": 1.6606173054282911,
+   "nll_ci": [
+    1.6313199786056385,
+    1.6908727780328785
+   ],
+   "acc_mean_over_subsets": 0.26304909560723516,
+   "acc_sd_over_subsets": 0.011332745353792441,
+   "nll_mean_over_subsets": 1.659428383019409,
+   "n_subsets": 5
+  },
+  "logistic": {
+   "acc_first_subset": 0.2868217054263566,
+   "acc_ci": [
+    0.26342632570472824,
+    0.3105005476752561
+   ],
+   "nll_first_subset": 1.9678284828370134,
+   "nll_ci": [
+    1.8897393792959198,
+    2.0400197018288164
+   ],
+   "acc_mean_over_subsets": 0.2789405684754522,
+   "acc_sd_over_subsets": 0.008908172700743247,
+   "nll_mean_over_subsets": 1.9853453389321003,
+   "n_subsets": 5
+  },
+  "gboost": {
+   "acc_first_subset": 0.2842377260981912,
+   "acc_ci": [
+    0.26618962328401263,
+    0.30375647668393785
+   ],
+   "nll_first_subset": 1.7833663889136324,
+   "nll_ci": [
+    1.7296893126914326,
+    1.8379560003729791
+   ],
+   "acc_mean_over_subsets": 0.26304909560723516,
+   "acc_sd_over_subsets": 0.011332745353792441,
+   "nll_mean_over_subsets": 1.7732052921147545,
+   "n_subsets": 5
+  }
+ },
+ "100": {
+  "majority": {
+   "acc_first_subset": 0.2997416020671835,
+   "acc_ci": [
+    0.2768414403885712,
+    0.3217538434993098
+   ],
+   "nll_first_subset": 1.6204478212225204,
+   "nll_ci": [
+    1.5960265749045717,
+    1.6468063553387455
+   ],
+   "acc_mean_over_subsets": 0.2908268733850129,
+   "acc_sd_over_subsets": 0.014424067945170923,
+   "nll_mean_over_subsets": 1.6120484305936162,
+   "n_subsets": 5
+  },
+  "logistic": {
+   "acc_first_subset": 0.3094315245478036,
+   "acc_ci": [
+    0.28341661259325596,
+    0.33399676375404524
+   ],
+   "nll_first_subset": 1.809879713963475,
+   "nll_ci": [
+    1.7497365722597766,
+    1.8739694745810858
+   ],
+   "acc_mean_over_subsets": 0.3051679586563308,
+   "acc_sd_over_subsets": 0.010674368251025754,
+   "nll_mean_over_subsets": 1.8231639204836483,
+   "n_subsets": 5
+  },
+  "gboost": {
+   "acc_first_subset": 0.3029715762273902,
+   "acc_ci": [
+    0.2808243546196641,
+    0.3281853281853282
+   ],
+   "nll_first_subset": 1.859053630163877,
+   "nll_ci": [
+    1.7863997875142479,
+    1.928364619352297
+   ],
+   "acc_mean_over_subsets": 0.2877260981912145,
+   "acc_sd_over_subsets": 0.00948183107592184,
+   "nll_mean_over_subsets": 1.8555868116726195,
+   "n_subsets": 5
+  }
+ },
+ "400": {
+  "majority": {
+   "acc_first_subset": 0.2997416020671835,
+   "acc_ci": [
+    0.27884410040710994,
+    0.3209168482207698
+   ],
+   "nll_first_subset": 1.6011428980385083,
+   "nll_ci": [
+    1.5791598851592454,
+    1.6227225803852579
+   ],
+   "acc_mean_over_subsets": 0.29883720930232555,
+   "acc_sd_over_subsets": 0.0022966910639058424,
+   "nll_mean_over_subsets": 1.597728680144544,
+   "n_subsets": 5
+  },
+  "logistic": {
+   "acc_first_subset": 0.3430232558139535,
+   "acc_ci": [
+    0.31670553513810235,
+    0.36723821830407294
+   ],
+   "nll_first_subset": 1.6099435359664982,
+   "nll_ci": [
+    1.5626066962619918,
+    1.6578180024697946
+   ],
+   "acc_mean_over_subsets": 0.33733850129198967,
+   "acc_sd_over_subsets": 0.008347093180988693,
+   "nll_mean_over_subsets": 1.6200721783251635,
+   "n_subsets": 5
+  },
+  "gboost": {
+   "acc_first_subset": 0.30684754521963825,
+   "acc_ci": [
+    0.2842286243627793,
+    0.32837501570606187
+   ],
+   "nll_first_subset": 1.9133949471323102,
+   "nll_ci": [
+    1.8420063067515486,
+    1.9894278544696529
+   ],
+   "acc_mean_over_subsets": 0.3099483204134367,
+   "acc_sd_over_subsets": 0.0035476822268077483,
+   "nll_mean_over_subsets": 1.872153359549543,
+   "n_subsets": 5
+  }
+ },
+ "1600": {
+  "majority": {
+   "acc_first_subset": 0.2997416020671835,
+   "acc_ci": [
+    0.2764158279887632,
+    0.32278604052362075
+   ],
+   "nll_first_subset": 1.5943515497583218,
+   "nll_ci": [
+    1.5707668501586032,
+    1.6171506544476542
+   ],
+   "acc_mean_over_subsets": 0.29987080103359176,
+   "acc_sd_over_subsets": 0.0014386988017648535,
+   "nll_mean_over_subsets": 1.5918274695777892,
+   "n_subsets": 5
+  },
+  "logistic": {
+   "acc_first_subset": 0.3611111111111111,
+   "acc_ci": [
+    0.3361559404060691,
+    0.38527056318314756
+   ],
+   "nll_first_subset": 1.5152238496923256,
+   "nll_ci": [
+    1.4788936448256038,
+    1.5558475605827111
+   ],
+   "acc_mean_over_subsets": 0.3636950904392765,
+   "acc_sd_over_subsets": 0.004782107370367384,
+   "nll_mean_over_subsets": 1.5080294678624124,
+   "n_subsets": 5
+  },
+  "gboost": {
+   "acc_first_subset": 0.3456072351421189,
+   "acc_ci": [
+    0.3199469226842229,
+    0.3708340365830503
+   ],
+   "nll_first_subset": 1.710313349244751,
+   "nll_ci": [
+    1.6515871790705998,
+    1.7747173492748087
+   ],
+   "acc_mean_over_subsets": 0.3456072351421189,
+   "acc_sd_over_subsets": 0.00636886694773448,
+   "nll_mean_over_subsets": 1.691193798478738,
+   "n_subsets": 5
+  }
+ },
+ "23999": {
+  "majority": {
+   "acc_first_subset": 0.3023255813953488,
+   "acc_ci": [
+    0.28110696138369395,
+    0.3222438386211588
+   ],
+   "nll_first_subset": 1.5907096936506202,
+   "nll_ci": [
+    1.5708775745604004,
+    1.6110945565029025
+   ],
+   "acc_mean_over_subsets": 0.3023255813953488,
+   "acc_sd_over_subsets": 0.0,
+   "nll_mean_over_subsets": 1.5907096936506202,
+   "n_subsets": 1
+  },
+  "logistic": {
+   "acc_first_subset": 0.3817829457364341,
+   "acc_ci": [
+    0.35594315245478036,
+    0.40965078141075867
+   ],
+   "nll_first_subset": 1.4651800581689058,
+   "nll_ci": [
+    1.431705889822119,
+    1.4941506792035752
+   ],
+   "acc_mean_over_subsets": 0.3817829457364341,
+   "acc_sd_over_subsets": 0.0,
+   "nll_mean_over_subsets": 1.4651800581689058,
+   "n_subsets": 1
+  },
+  "gboost": {
+   "acc_first_subset": 0.4024547803617571,
+   "acc_ci": [
+    0.3725728068623028,
+    0.43246882616098553
+   ],
+   "nll_first_subset": 1.4345227146184194,
+   "nll_ci": [
+    1.3976628808969966,
+    1.4705881132260878
+   ],
+   "acc_mean_over_subsets": 0.4024547803617571,
+   "acc_sd_over_subsets": 0.0,
+   "nll_mean_over_subsets": 1.4345227146184194,
+   "n_subsets": 1
+  }
+ }
+}

@@ -1,0 +1,12 @@
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+\textbf{Method} & \textbf{Accuracy (\%) [95\% CI]} & \textbf{NLL} & \textbf{FT $-$ method} \\
+\midrule
+Majority class & 30.2 [28.1, 32.4] & 1.59 & +7.5 [+5.0, +10.1] \\
+Logistic regression & 38.3 [35.7, 41.0] & 1.46 & $-$0.6 [$-$2.3, +1.1] \\
+Gradient boosting & 40.4 [37.3, 43.4] & 1.43 & $-$2.7 [$-$4.7, $-$0.6] \\
+Zero-shot Qwen2.5-7B (chat) & 17.5 [15.7, 19.4] & 3.88 & +20.2 [+16.9, +23.5] \\
+Fine-tuned Qwen2.5-7B & 37.7 [35.1, 40.3] & --- & --- \\
+\bottomrule
+\end{tabular}

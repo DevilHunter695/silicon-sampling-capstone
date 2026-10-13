@@ -1,0 +1,11 @@
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+\textbf{Method} & \textbf{Accuracy (\%) [95\% CI]} & \textbf{MAE}$^\dagger$ & \textbf{Grp. err.}$^\S$ \\
+\midrule
+Majority class & 30.4 [29.9, 30.8] & 1.65 & 0.34 \\
+Logistic regression & 38.5 [38.0, 39.0] & 1.35 & 0.15 \\
+Gradient boosting & 40.0 [39.6, 40.5] & 1.29 & 0.13 \\
+Fine-tuned Qwen2.5-7B & 38.0 [37.5, 38.4] & 1.35 & 0.13 \\
+\bottomrule
+\end{tabular}

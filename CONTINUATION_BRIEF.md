@@ -142,3 +142,26 @@ chat has `Artifact` access — do not create duplicates)
 If in doubt, the safest single thing to hand over is the whole
 `silicon-sampling-capstone` repo — it's small (data files are all under a
 few MB total).
+
+---
+## Status update 2026-10-13 (supersedes earlier status where they differ)
+
+**Faithful fold-0 result (Kaggle T4, 6,000 test respondents, 46,209 rows).** The lab adapter scored in the training format
+(next digit after prompt + blank line, fp16) reaches 38.0% [37.5, 38.4]; majority 30.4, logistic 38.5, GBM 40.0; NLL 1.48; ECE 0.009.
+The lab's own greedy decoding gives 36.1% (71.7% row agreement); the apparent Q12 collapse was a decoding artifact.
+Zero-shot base on the full fold: 16.1% (chat), 18.0% (raw), chance 19.4%.
+
+**Paper.** `paper/ieee/` holds draft 1 (baseline-matched evaluation) and draft 2 (profile use, fine-tuning, held-out-item transfer;
+current version rebuilt on the faithful readout). Build: `python build_paper.py paper2_template.tex paper2_ieee.tex` then pdflatex twice.
+All numbers are generated from `paper/ieee/analysis/*.json`. A hostile-review and citation audit was applied (see git log).
+
+**Kaggle experiments** (`kaggle_experiments/`, see `kaggle_experiments/README_RUN_ON_KAGGLE.md`):
+1. Done: fold-0 faithful inference (adapter_raw, base_raw, base_chat).
+2. Running (friend's account): breadth-vs-data fine-tuning, adapter A (items 0:24) vs B (items 0:8), same 15,462 examples from 2,000 respondents,
+   evaluated on items 0:40 for 500 test respondents. Analysis is pre-specified in `kaggle_experiments/PREREGISTERED_ANALYSIS.md`;
+   run `transfer_analysis.py` and `gen_tables5.py` on the returned `seed0_results.zip`.
+3. To run: lab adapter on 32 unseen items (items 8:40), 1,000 respondents (`kaggle_pew_infer_v2.py --item-range 8:40 --n-resp 1000`).
+
+**Not done / open:** second seed or fold; broader training; frontier-API zero-shot beyond gpt-oss-120b (100 respondents);
+survey weights; 2027 venue deadlines unverified.
+**Data rules:** WVS microdata are not redistributed; `.env` is git-ignored; do not commit adapters or raw Kaggle outputs.

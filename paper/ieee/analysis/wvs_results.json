@@ -1,0 +1,146 @@
+{
+ "Gemini 3.1 Flash Lite": {
+  "n_rows": 421,
+  "n_respondents": 30,
+  "accuracy": 0.25653206650831356,
+  "mae": 1.7125890736342042,
+  "refusal_rate": 0.0,
+  "acc_ci_cluster": [
+   0.21126114485075592,
+   0.3046807050328177
+  ],
+  "same_items_baselines": {
+   "llm": 0.2547921724933219,
+   "cell_lookup": 0.23141483791735862,
+   "gbm": 0.34052601220772766,
+   "gbm_matched": 0.36245480807666314,
+   "logistic": 0.2873162155649721,
+   "logistic_matched": 0.2976152958561091,
+   "marginal": 0.21471895487614345,
+   "uniform": 0.20807196219403665
+  },
+  "resp_per_category": {},
+  "gaps": {
+   "sg_region": {
+    "gap": 0.1973856209150327,
+    "perm_p": 0.2689462107578484,
+    "null_median_gap": 0.16363636363636364,
+    "n_cats_powered": 6,
+    "min_resp_in_powered_cat": 3,
+    "max_resp_in_powered_cat": 10
+   },
+   "sg_age_band": {
+    "gap": 0.08757435558493062,
+    "perm_p": 0.8156368726254749,
+    "null_median_gap": 0.14414414414414412,
+    "n_cats_powered": 3,
+    "min_resp_in_powered_cat": 5,
+    "max_resp_in_powered_cat": 13
+   },
+   "sg_education": {
+    "gap": 0.1324251691224168,
+    "perm_p": 0.07658468306338732,
+    "null_median_gap": 0.07113654125227127,
+    "n_cats_powered": 3,
+    "min_resp_in_powered_cat": 7,
+    "max_resp_in_powered_cat": 15
+   },
+   "sg_income": {
+    "gap": 0.10227272727272727,
+    "perm_p": 0.33213357328534293,
+    "null_median_gap": 0.08062143776429491,
+    "n_cats_powered": 3,
+    "min_resp_in_powered_cat": 3,
+    "max_resp_in_powered_cat": 14
+   },
+   "sg_sex": {
+    "gap": 0.1037823091505988,
+    "perm_p": 0.026394721055788842,
+    "null_median_gap": 0.03326427255985265,
+    "n_cats_powered": 2,
+    "min_resp_in_powered_cat": 13,
+    "max_resp_in_powered_cat": 17
+   },
+   "sg_urban_rural": {
+    "gap": 0.04295174585533021,
+    "perm_p": 0.3863227354529094,
+    "null_median_gap": 0.03316761363636364,
+    "n_cats_powered": 2,
+    "min_resp_in_powered_cat": 12,
+    "max_resp_in_powered_cat": 18
+   }
+  }
+ },
+ "gpt-oss-120b": {
+  "n_rows": 556,
+  "n_respondents": 40,
+  "accuracy": 0.2302158273381295,
+  "mae": 1.618705035971223,
+  "refusal_rate": 0.0,
+  "acc_ci_cluster": [
+   0.19579523891668105,
+   0.2670250896057348
+  ],
+  "same_items_baselines": {
+   "llm": 0.22991051491051492,
+   "cell_lookup": 0.23141483791735865,
+   "gbm": 0.3405260122077276,
+   "gbm_matched": 0.36245480807666314,
+   "logistic": 0.2873162155649721,
+   "logistic_matched": 0.2976152958561091,
+   "marginal": 0.21471895487614343,
+   "uniform": 0.20807196219403665
+  },
+  "resp_per_category": {},
+  "gaps": {
+   "sg_region": {
+    "gap": 0.07916666666666666,
+    "perm_p": 0.9260147970405919,
+    "null_median_gap": 0.13829545454545455,
+    "n_cats_powered": 6,
+    "min_resp_in_powered_cat": 4,
+    "max_resp_in_powered_cat": 15
+   },
+   "sg_age_band": {
+    "gap": 0.13636363636363635,
+    "perm_p": 0.46290741851629674,
+    "null_median_gap": 0.13162393162393163,
+    "n_cats_powered": 6,
+    "min_resp_in_powered_cat": 3,
+    "max_resp_in_powered_cat": 16
+   },
+   "sg_education": {
+    "gap": 0.06131504638967328,
+    "perm_p": 0.40351929614077187,
+    "null_median_gap": 0.05366489470657533,
+    "n_cats_powered": 3,
+    "min_resp_in_powered_cat": 9,
+    "max_resp_in_powered_cat": 19
+   },
+   "sg_income": {
+    "gap": 0.03269208072701521,
+    "perm_p": 0.8050389922015597,
+    "null_median_gap": 0.0582820385581857,
+    "n_cats_powered": 3,
+    "min_resp_in_powered_cat": 5,
+    "max_resp_in_powered_cat": 17
+   },
+   "sg_sex": {
+    "gap": 0.0010395010395010396,
+    "perm_p": 0.9828034393121375,
+    "null_median_gap": 0.025452613299120047,
+    "n_cats_powered": 2,
+    "min_resp_in_powered_cat": 19,
+    "max_resp_in_powered_cat": 21
+   },
+   "sg_urban_rural": {
+    "gap": 0.024048640138971816,
+    "perm_p": 0.5344931013797241,
+    "null_median_gap": 0.02615564255786798,
+    "n_cats_powered": 2,
+    "min_resp_in_powered_cat": 15,
+    "max_resp_in_powered_cat": 25
+   }
+  }
+ }
+}

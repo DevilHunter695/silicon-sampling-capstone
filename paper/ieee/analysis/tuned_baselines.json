@@ -1,0 +1,46 @@
+{
+ "logistic": {
+  "acc": 0.3848384513839295,
+  "nll": 1.4713478888663114,
+  "n": 46209
+ },
+ "gboost": {
+  "acc": 0.40234586335995154,
+  "nll": 1.4432711992836804,
+  "n": 46209
+ },
+ "chosen": {
+  "QFERTrec": {
+   "logistic": "0.1",
+   "gboost": "{'max_iter': 100, 'learning_rate': 0.1, 'max_depth': 4}"
+  },
+  "Q50": {
+   "logistic": "10.0",
+   "gboost": "{'max_iter': 150, 'learning_rate': 0.05, 'max_depth': None, 'l2_regularization': 1.0}"
+  },
+  "Q12": {
+   "logistic": "0.01",
+   "gboost": "{'max_iter': 150, 'learning_rate': 0.05, 'max_depth': None, 'l2_regularization': 1.0}"
+  },
+  "Q3132rec": {
+   "logistic": "0.1",
+   "gboost": "{'max_iter': 100, 'learning_rate': 0.1, 'max_depth': None, 'l2_regularization': 5.0}"
+  },
+  "ABORT": {
+   "logistic": "0.1",
+   "gboost": "{'max_iter': 150, 'learning_rate': 0.05, 'max_depth': None, 'l2_regularization': 1.0}"
+  },
+  "Q15": {
+   "logistic": "0.1",
+   "gboost": "{'max_iter': 100, 'learning_rate': 0.1, 'max_depth': None, 'l2_regularization': 5.0}"
+  },
+  "Q39a": {
+   "logistic": "0.1",
+   "gboost": "{'max_iter': 150, 'learning_rate': 0.05, 'max_depth': None, 'l2_regularization': 1.0}"
+  },
+  "Q28rec": {
+   "logistic": "0.1",
+   "gboost": "{'max_iter': 150, 'learning_rate': 0.05, 'max_depth': None, 'l2_regularization': 1.0}"
+  }
+ }
+}
