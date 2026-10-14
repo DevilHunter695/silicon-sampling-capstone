@@ -1,0 +1,358 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{url}
+\renewcommand{\ttdefault}{cmtt}
+
+\makeatletter
+\providecommand{\linebreakand}{\end{@IEEEauthorhalign}\hfill\mbox{}\par\mbox{}\hfill\begin{@IEEEauthorhalign}}
+\makeatother
+
+\begin{document}
+
+\title{How Do Silicon Respondents Use Demographics?\\ Prompting, Fine-Tuning and Held-Out-Item Transfer in India}
+
+\author{
+\IEEEauthorblockN{Krishank Ayyella}
+\IEEEauthorblockA{Department of Computer Science\\
+\textit{[University Name]}\\
+{}[City, Country]\\
+krishankayyella@{}[domain]}
+\and
+\IEEEauthorblockN{Bhanuj Bhalla}
+\IEEEauthorblockA{Department of Computer Science\\
+\textit{[University Name]}\\
+{}[City, Country]\\
+bhanujbhalla@{}[domain]}
+\linebreakand
+\IEEEauthorblockN{Yash Bhende}
+\IEEEauthorblockA{Department of Computer Science\\
+\textit{[University Name]}\\
+{}[City, Country]\\
+yashbhende@{}[domain]}
+\and
+\IEEEauthorblockN{Ishaan Bansal}
+\IEEEauthorblockA{Department of Computer Science\\
+\textit{[University Name]}\\
+{}[City, Country]\\
+ishaanbansal@{}[domain]}
+\linebreakand
+\IEEEauthorblockN{Khushbu Chauhan}
+\IEEEauthorblockA{Department of Computer Science\\
+\textit{[University Name]}\\
+{}[City, Country]\\
+khushbuchauhan@{}[domain]}
+}
+
+\maketitle
+
+\begin{abstract}
+Silicon sampling uses a language model, prompted with a demographic profile, as a stand-in survey respondent. Benchmarks report that such respondents match or trail simple classifiers, but say little about \emph{what the profile contributes} or \emph{what supervised adaptation changes}. We study these questions on Pew Research Center's Religion in India survey ($N{=}29{,}999$) and WVS-7 India ($N{=}1{,}692$), scoring every method on identical respondent--item rows against matched classifiers. On a 200-respondent Pew subset, zero-shot Qwen2.5-7B-Instruct scores 17.5\% (majority class 30.2\%). It uses the profile heavily (the profile explains 29\% of its prediction variance against 4\% of real answers) but its group differences correlate only $r={0.22}$ with real ones, and the profile lowers accuracy by 3.6 points relative to no profile. QLoRA fine-tuning on 184{,}853 respondent-level examples reaches 38.0\% on all 6{,}000 held-out respondents (majority 30.4\%, logistic regression 38.5\%, GBM 40.0\%), is well calibrated (ECE 0.009), and on the subset is 20.2 points above zero-shot. In a held-out-item test, an approximate re-implementation of the adapter shows no detectable gain over its base on eight unseen questions (28.9\% vs.\ 28.5\%); the in-domain gain is larger by 13.7 points over respondents, but with eight items per side this difference is not distinguishable from zero at the item level. A 120B zero-shot model scores 27.6\% on 100 respondents, below the majority class (difference not significant). Logistic regression needs about 400 labelled respondents, and gradient boosting about 1{,}600, to clear the majority class. On WVS-7 India three zero-shot LLMs score 22 to 26\% on 15 items where the majority class scores 21 to 25\%, and their group differences carry no directional signal.
+\end{abstract}
+
+\begin{IEEEkeywords}
+silicon sampling, survey simulation, demographic conditioning, QLoRA, transfer, World Values Survey, Pew Research Center, India
+\end{IEEEkeywords}
+
+\section{Introduction}
+
+``Silicon sampling'' conditions a language model on a sociodemographic profile and treats its answer as that person's survey response, a possible low-cost complement to polling \cite{argyle2023}. Reports are mixed: models can reproduce demographic--attitude correlations in US data \cite{argyle2023}, yet show substantial misalignment with many groups \cite{santurkar2023}; at the individual level they match or trail statistical baselines trained on the same demographics \cite{chen2026,miranda2025}, are reported to over-attribute attitudes to demographics and inflate between-group gaps \cite{chen2026}, and persona variables explain little real variance \cite{hu2024}. What these benchmarks do not isolate is the \emph{role of the profile itself}. Does a prompted model use the demographic information in the right direction? What does supervised adaptation on respondent-level data change? And does that adaptation carry over to questions the model was never trained on, the one setting in which a classical model fitted per item has no labels to learn from?
+
+We address these questions for India, using two public surveys and controls that separate the profile's contribution from the model's prior: a no-profile prompt, a label-free prior correction, a same-model fine-tuned comparison, and a held-out-item transfer test.
+
+\textbf{Research questions.}
+\begin{itemize}
+    \item \textbf{RQ1 (use).} How does a prompted LLM use the demographic profile: how much, and in which direction?
+    \item \textbf{RQ2 (adaptation).} What does respondent-level fine-tuning change, relative to the zero-shot model and to matched classifiers?
+    \item \textbf{RQ3 (transfer).} Does the adaptation transfer to unseen questions?
+    \item \textbf{RQ4 (scale and data).} Do a larger zero-shot model or more labelled respondents change the picture?
+\end{itemize}
+
+\textbf{Contributions.}
+\begin{enumerate}
+    \item A set of \emph{profile-use diagnostics} that separate accuracy from mechanism: profile ablation, demographic variance share, and directional validity of group differences (correlation and slope), alongside a label-free prior-corrected control (Section~IV).
+    \item Evidence from India (two surveys; fine-tuning evaluated on 6{,}000 held-out respondents, zero-shot controls on 200) that a zero-shot 7B model uses the profile heavily but with weak direction and no accuracy benefit, and that respondent-level fine-tuning recovers most, though not all, of the accuracy and direction gap to matched classifiers (Section~V-A, V-B).
+    \item A held-out-item transfer test in which the fine-tuned adapter shows no detectable accuracy gain on eight unseen questions, reported with its limits: an approximate adapter port, 120 respondents and eight items (Section~V-C).
+    \item Checks on scale (a 120B zero-shot model), on how many labelled respondents classical models need, and a WVS-7 replication (Sections~V-D, V-E).
+\end{enumerate}
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=0.98\textwidth]{figs/fig_pipeline.pdf}
+\caption{Overview. Both surveys pass through codebook-driven item screening, a respondent-level 5-fold split, and shared verbalization code. Pew supports the profile diagnostics, fine-tuning, and the held-out-item transfer test; WVS-7 supports a zero-shot replication. All scoring is out-of-fold and on identical rows.}
+\label{fig:pipeline}
+\end{figure*}
+
+\section{Related Work}
+
+\textbf{Simulating respondents.} Argyle et al.~\cite{argyle2023} showed that GPT-3 conditioned on sociodemographic backstories reproduces demographic--attitude correlations in US data (\emph{algorithmic fidelity}). Santurkar et al.~\cite{santurkar2023} found substantial misalignment with many US groups that persists after explicit steering, Durmus et al.~\cite{durmus2023} found cross-national differences in whose opinions models resemble, and Bisbee et al.~\cite{bisbee2024} documented reduced variance and prompt sensitivity. Hu and Collier~\cite{hu2024} show that persona variables explain under 10\% of annotation variance and that persona prompting helps only modestly, most where persona effects are strongest. Shankar et al.~\cite{shankar2026} audit religious viewpoints across Asian populations and find minorities poorly represented.
+
+\textbf{Baselines and over-determination.} Miranda and Balbi~\cite{miranda2025} find individual-level performance comparable between LLMs and random forests on ANES, with the forests often marginally ahead, while LLMs match aggregate distributions better. Chen et al.~\cite{chen2026} evaluate four models, two of them frontier Claude models, on GSS and 63-country WVS against marginal, lookup, logistic and random-forest baselines, and report that no model beats the strongest baseline, that models over-determine attitudes by demographics (a variance-explained ``stereotyping index''), and that segment gaps are inflated two- to fourfold. Ziaei~\cite{ziaei2026} reports loss of response variance after post-training and survey fine-tuning. Two recent reports on other surveys find negligible individual-level recovery: Wang~\cite{wang2026} on the European Social Survey, where a neighbouring-country average beats every model configuration, and Lam et al.~\cite{lam2026} on Singapore, where frontier models give moderately faithful means but understate variance.
+
+\textbf{Adaptation.} Kim and Lee~\cite{kim2023} train respondent-level embeddings over a frozen language model; Suh et al.~\cite{suh2025} and Cao et al.~\cite{cao2025} fine-tune on survey data, the former generalising to unseen subpopulations and surveys, the latter to unseen questions, countries and a new survey but least well to unseen questions; Choi et al.~\cite{choi2026} find that fine-tuning on small pilot samples gives the most balanced structural and marginal fidelity on a Korean survey; Krsteski et al.~\cite{krsteski2025} find rectification more valuable than fine-tuning when human data are scarce; Sun et al.~\cite{sun2024} condition on group-level demographics. Robbani~\cite{robbani2026} finds, for Mistral-7B on US panel data, that demographic information is readable in internal representations but swapping it moves predictions by under 2\% of the error, a representation-level counterpart to the behavioural profile-use results here.
+
+\textbf{Positioning.} The finding that LLMs do not clearly beat matched baselines, and the over-determination and gap-inflation phenomena, are established~\cite{chen2026,miranda2025,hu2024}; we do not claim them as new and use them as a frame. What we add is (a)~an India-specific study with respondent-level fine-tuning at $N\approx$ 30 thousand and a same-model zero-shot control, (b)~diagnostics that separate how much the profile is used from whether it is used in the right direction, and (c)~a held-out-item test at respondent level, which is where adapted LLMs could in principle add value over classifiers.
+
+\section{Data}
+
+\textbf{Pew Religion in India} \cite{pew2021} is a face-to-face survey of 29{,}999 adults fielded between November 2019 and March 2020. Question wording and labels were parsed from the survey's DDI metadata and 73 items passed screening (binary items, demographic columns, items with missingness above 10\%, and near-unanimous items were excluded). The first eight items of the frozen screened list (religious practice and identity, norms on politics and abortion, sex-selective practice, number of children; $K=4$ to 8 options) are used for fine-tuning. Items 9 to 16 (meditation, self-rated health, trust in health advice, what it takes to be ``truly Indian'', television serials, praying) are never used for training and form the transfer set. Respondents are split into five folds stratified by urban/rural $\times$ income band; this paper uses fold~0 (23{,}999 training, 6{,}000 test respondents; 46{,}209 test rows on the trained items). The prompt (P2) carries nine attributes: sex, age band, marital status, education, religion, caste, urban/rural, region, income band.
+
+\textbf{WVS-7 India} (v6.0 \cite{wvs7}; $N=1{,}692$): 373 candidate items were screened against the codebook to 144; zero-shot runs use 15 of them and the 14-attribute P2 prompt.
+
+\section{Methods}
+
+\subsection{Predictors and controls}
+
+\textbf{Matched baselines} are fit per item on training respondents with exactly the prompt's attributes: majority class, logistic regression and histogram GBM \cite{pedregosa2011} (plus a six-attribute cell mode for WVS). All baselines predict the mode, and all are scored on the same rows as the LLMs.
+
+\textbf{Zero-shot Qwen2.5-7B-Instruct} \cite{qwen2025} is run locally for the 200-respondent subset (4-bit MLX \cite{mlx2023}) and, for the full fold, on a Kaggle T4 (NF4, fp16 compute); the next-token distribution over option tokens gives a hard prediction and probabilities. Conditions: \emph{chat} (chat template, the usual zero-shot use), \emph{raw} (bare prompt, the fine-tuning format), \emph{no profile} (P0: identical prompt per item), and \emph{prior-corrected} (probabilities rescaled by the training marginal over the model's own mean prediction, label-free for test rows).
+
+\textbf{Fine-tuned model.} QLoRA \cite{dettmers2023,hu2022} (4-bit NF4, rank 16, $\alpha{=}32$, dropout 0.05, q/k/v/o projections, 10.1M trainable parameters), one epoch over 184{,}853 examples (23{,}999 respondents), effective batch 32, peak learning rate $2\times10^{-4}$, seed 42, causal loss over the full sequence (prompt and answer tokens); 6.6~h on one GPU. Predictions are the argmax of the next-token distribution over the option digits after the training-format prompt (prompt followed by a blank line), scored on a Kaggle T4 in fp16 with the 4-bit NF4 base, which is the readout used for every zero-shot condition. The original run's own greedy decoding of the same adapter, which ended the prompt without the separator, scores 36.1\% and agrees with this readout on 71.7\% of rows; we report both and use the training-format readout as primary. The transfer test of Section~V-C used an MLX re-implementation of the adapter on a 4-bit MLX base, which is approximate.
+
+\textbf{Larger zero-shot model.} gpt-oss-120b \cite{gptoss2025} (Groq free tier, low reasoning effort) on a nested subset of respondents with the same prompts.
+
+\subsection{Diagnostics}
+
+All use normalised answer indices in $[0,1]$ on ordinal items.
+
+\textbf{Demographic variance share.} The increase in $R^2$ when profile dummies are added to item fixed effects, for the predictions and for the true answers (the analogue of the variance-explained index of~\cite{chen2026}).
+
+\textbf{Directional validity.} For each (item, axis, category) cell with at least 15 respondents (100 on the full Pew fold, 8 on WVS-7, where cells are smaller), the group difference is the category mean minus the item mean, for predictions and for truth. We report Pearson $r$ between predicted and true differences and the OLS slope of predicted on true (slope below 1: attenuation; above 1: inflation). Intervals resample respondents; because resampling attenuates cell means they sit below the point estimates and should be read as a measure of uncertainty, not as exact coverage. The variance share uses soft (probability-weighted) predictions for the zero-shot model and hard predictions for the fine-tuned model and GBM.
+
+\textbf{Distributional fidelity.} For each (item, subgroup category) cell with at least 40 respondents, the Jensen--Shannon divergence (base 2) between the mean predicted probability vector and the empirical answer distribution, averaged over cells; this uses probabilities rather than argmax predictions and avoids the inflation of hard predictions. Intervals resample respondents.
+
+\textbf{Accuracy and calibration.} Exact match, MAE on ordinal items and negative log-likelihood (NLL) where probabilities exist; paired respondent-bootstrap differences; Holm correction across axes for subgroup gaps (gap $=$ best minus worst category accuracy, tested by label permutation).
+
+\subsection{Transfer and data-efficiency protocols}
+
+\textbf{Transfer.} The fine-tuned adapter and its base are applied to the eight unseen items for 120 respondents. Labels are used only for scoring; classifiers trained with labels on those items give a ceiling that is unavailable in the new-question setting. The in-domain contrast is computed on the same respondents, and the difference of the two gains is bootstrapped over respondents.
+
+\textbf{Labelled-data requirement.} Classical models are trained on nested respondent subsets ($N=25$ to 23{,}999; five random subsets each) and scored on the same 200 test respondents, giving the number of labelled respondents needed to clear the majority class.
+
+\section{Results}
+
+\subsection{RQ1: the profile is used heavily, not usefully}
+
+\begin{table}[!t]
+\caption{Pew, 200 held-out respondents (1{,}548 rows; the direction and variance columns exclude one non-ordinal item, 1{,}351 rows and 182 cells). Dir.\ $r$: correlation between predicted and true group differences. Profile var.: share of variance explained by the profile beyond item effects.}
+\label{tab:controls}
+\centering
+\scriptsize
+\input{tables/tab_controls.tex}
+\end{table}
+
+Table~\ref{tab:controls} summarises the zero-shot behaviour. With the chat template the model scores 17.5\% (95\% CI 15.7--19.4), 12.7 points below the majority class and at chance (19.4\%); the raw prompt is the same (18.8\%, 120 respondents). Removing the profile \emph{raises} accuracy to 21.1\%: the profile changes accuracy by $-$3.6 points ($-$5.9 to $-$1.2). The model nevertheless reacts strongly to the profile: its prediction changes on 50\% of rows relative to no profile, and the profile explains 29\% of its prediction variance, against 4\% for real answers and 6\% for GBM. Its group differences are weakly aligned with the truth ($r={0.22}$, 95\% CI 0.02 to 0.35) and strongly attenuated (slope 0.18). Fig.~\ref{fig:direction} shows the pattern. On the full fold (6{,}000 respondents, 46{,}209 rows) the same model scores 16.1\% with the chat template (95\% CI 15.7--16.4) and 18.0\% with the raw prompt, against 19.4\% for chance and 30.4\% for the majority class, so the subset result is not a sampling artefact. A prior correction recovers about two thirds of the distance to the majority class (26.3\%) but not more, and the model's NLL (3.88) is worse than uniform guessing, with probability concentrated on a single option for most respondents (mean top-option share 0.71).
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{figs/fig_direction.pdf}
+\caption{Predicted versus true group differences for 182 (item, axis, category) cells (200 respondents; item-centred, normalised scale). Dashed: identity. Zero-shot differences are nearly flat and weakly correlated; fine-tuned and GBM predictions track the diagonal.}
+\label{fig:direction}
+\end{figure*}
+
+On a gender-role subset of WVS-7 the direction is partly right: the zero-shot model predicts the correct sign of the female--male difference on all three gender-role items but inflates its size by 1.1 to 4 times, and on seven of the twelve other items the sign is wrong (exploratory, script wvs\_genderrole.py; 51 to 63 respondents per group, and the true differences on these items are small). We read this as correct direction on a few items where a common stereotype points the same way as the data, not as general use of the profile.
+
+\subsection{RQ2: fine-tuning recovers most of the gap, short of GBM}
+
+\begin{table}[!t]
+\caption{Pew fold-0 results, 46{,}209 held-out answers from 6{,}000 respondents. $^\dagger$MAE on ordinal items. $^\S$Error of the predicted subgroup-mean answer on a $[0,1]$ scale (hard predictions).}
+\label{tab:pewoverall}
+\centering
+\footnotesize
+\input{tables/tab_pew_overall.tex}
+\end{table}
+
+\begin{table}[!t]
+\caption{Pew fold 0: accuracy (\%) per item on the eight trained questions ($K$: number of options; 46{,}209 test answers in total). $^\ddagger$Whether being of one's religion is mainly a matter of ancestry, belief or practice.}
+\label{tab:items}
+\centering
+\footnotesize
+\input{tables/tab_pew_items.tex}
+\end{table}
+
+\begin{table}[!t]
+\caption{Subgroup accuracy gap (best minus worst category, points) on Pew fold 0, with the permutation $p$-value for the fine-tuned model and its difference from GBM's gap.}
+\label{tab:gaps}
+\centering
+\scriptsize
+\input{tables/tab_pew_gaps.tex}
+\end{table}
+
+\begin{table}[!t]
+\caption{Concentration and dispersion on Pew fold 0. Top share: mean share of the most frequent predicted answer per item; TV: total-variation distance of the predicted from the true answer marginal; SD ret.: standard deviation of predictions relative to the truth; Gap infl.: median ratio of predicted to true between-group differences (hard predictions).}
+\label{tab:conc}
+\centering
+\scriptsize
+\input{tables/tab_pew_conc.tex}
+\end{table}
+
+On the full fold (Table~\ref{tab:pewoverall}) the fine-tuned model reaches 38.0\% (95\% CI 37.5--38.4): +7.6 points over the majority class, $-$0.5 relative to logistic regression ($-$0.8 to $-$0.2) and $-$2.1 relative to GBM, closing 79\% (75--83) of the majority-to-GBM accuracy gap. Its NLL (1.48) lies between logistic regression (1.47) and the majority class (1.59) and above GBM (1.44), and it is well calibrated (ECE 0.009). It trails GBM on every item (by 1.2 to 2.7 points; Table~\ref{tab:items}); averaging its probabilities with GBM's gives no accuracy gain over GBM ($-$0.2 points, 95\% CI $-$0.5 to $+$0.0). The lab run's decoding gave a constant answer on Q12; under the training-format readout the model predicts the majority answer for most respondents there and its mean probabilities follow the true shares, so that collapse was a property of the decoding, not of the adapter. On the 200-respondent subset it exceeds the zero-shot model by 20.2 points (paired 95\% CI 16.9 to 23.5) and beats a prior-corrected zero-shot model by 11.4 points. Its group differences correlate $r={0.58}$ with the truth on the subset (GBM 0.64) and 0.82 on the full fold (GBM 0.91), with slope near one on the subset (1.07) and above one on the full fold (1.87; GBM 1.85); the subset and full-fold values use different cell thresholds (15 and 100 respondents) and are not directly comparable. Hard predictions of all three methods inflate between-group differences (2.0$\times$ fine-tuned, 2.0$\times$ GBM, 2.6$\times$ logistic), which is consistent with hard argmax predictions inflating group differences in general (Table~\ref{tab:conc}); we did not test soft predictions for this. Fine-tuned subgroup accuracy gaps (Table~\ref{tab:gaps}) differ from zero on five of eight axes after Holm correction (religion 10.0 points, region 8.8, age 2.7, income 1.7, urban/rural 1.3), and differ from GBM's by at most 1.9 points, nominally only for region ($+1.4$, CI 0.1 to 3.5, uncorrected). Scored on probabilities, the fine-tuned model's predicted subgroup distributions are close to the truth: mean Jensen--Shannon divergence 0.009 across religion cells and 0.006 across region cells, against 0.004 and 0.002 for logistic regression, 0.029 and 0.020 for the item marginal, and 0.271 and 0.293 for the zero-shot model. The fine-tuned model is thus about two to three times further from the truth than the classifiers on religion and region, and more than an order of magnitude closer than the zero-shot model. Tuning the classifiers on a validation split of the training respondents changes little (logistic 38.5\%, GBM 40.2\%), so the gap to GBM is not due to under-tuned classifiers (the fine-tuned configuration itself was not tuned).
+
+\subsection{RQ3: no detectable gain on unseen items}
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{figs/fig_transfer.pdf}
+\caption{(a)~Accuracy on the eight trained and eight unseen items (120 respondents; 95\% respondent-bootstrap CIs). (b)~Gain of the fine-tuned model over its zero-shot base with paired 95\% CIs. Classifiers marked ``with labels'' are not available for a genuinely new question.}
+\label{fig:transfer}
+\end{figure*}
+
+\begin{table}[!t]
+\caption{Transfer to eight unseen Pew items (120 respondents, 942 rows). Dir.\ $r$ as in Table~\ref{tab:controls}.}
+\label{tab:transfer}
+\centering
+\scriptsize
+\input{tables/tab_transfer.tex}
+\end{table}
+
+The fine-tuned adapter was applied to eight Pew items it never saw. On the trained items the MLX re-implementation scores 32.9\% against 18.8\% for its base (a gain of +14.1 points) and 40.5\% for the original lab-run model, so the port reproduces much of the effect but is weaker, with 56\% row agreement and a similar directional validity (0.71 against 0.63 for the original). On the unseen items (Table~\ref{tab:transfer}, Fig.~\ref{fig:transfer}) the adapter scores 28.9\% and its base 28.5\%, a difference of +0.4 points ($-$5.1 to +5.9), against +14.1 in domain: over respondents the in-domain gain exceeds the unseen gain by 13.7 points (95\% CI 7.0--20.4). That interval treats the eight items on each side as fixed. Across items the difference is 14.0 points with a standard error of 10.2 (permutation $p=0.18$), and the unseen gain ranges from $-21$ to $+36$ points per item, so we do not claim that the in-domain gain is reliably larger than the unseen gain; the safe reading is that no gain on unseen items is detectable. Two weaker signals remain: calibration (NLL 2.39 to 1.69, still above the uniform value of 1.65) and the direction of group differences ($r={0.24}$, 95\% CI 0.03 to 0.35, against $-0.02$ for the base). Classifiers fitted with labels on these items reach 37.6\% (majority), 44.7\% and 47.6\%, so in this setting the adapted LLM does not offer a usable substitute for new-question data. The test uses the approximate port, 120 respondents and eight items, and a single narrow training set; it does not show that broader fine-tuning would also fail to transfer.
+
+\subsection{RQ4: scale and data}
+
+\textbf{Larger zero-shot model.} gpt-oss-120b on 100 respondents (774 rows) scores 27.6\% (24.9--30.3): 2.3 points below the majority class (30.0\%, difference not significant), against 18.7\% for the 7B model on the same rows, and 11.8 points below the fine-tuned 7B model (7.1 to 16.5). This is a different, larger model and we did not vary scale within a family, so we cannot attribute the difference from the 7B model to scale; it is at the majority class, not beyond.
+
+\textbf{Labelled data.} Classical models need substantial labelled data to beat the majority class. Averaged over five random subsets, logistic regression is at the majority level for $N\le100$ respondents (30.5\% against 29.1\% at $N=100$), exceeds it by +3.9 points at $N=400$ (33.7\%) and by +6.4 at $N=1{,}600$ (36.4\%); GBM clears the majority class in accuracy only at about 1{,}600 respondents (34.6\%) and still has worse NLL than the majority class there (1.69 against 1.59). On the same 200 test respondents, the fine-tuned 7B model (trained on 23{,}999 respondents) scores 37.7\%, below logistic regression trained on 1{,}600 respondents (36.4\%). Whether LLM adaptation is more sample-efficient than classical models in this low-data regime is the open question most likely to favour LLMs; we could not test it reliably with 7B models on available hardware, and a small-model (0.5B) attempt trained on up to 100 respondents collapsed to a near-constant answer, so we draw no conclusion from it.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\columnwidth]{figs/fig_lc_classical.pdf}
+\caption{Classical models on nested respondent subsets (200 test respondents; mean and SD over five random subsets). (a)~Accuracy; the 7B fine-tuned point uses all 23{,}999 training respondents. (b)~NLL (the zero-shot 7B model, 3.88, is off the scale shown).}
+\label{fig:lc}
+\end{figure}
+
+\subsection{WVS-7 India replication}
+
+Across the 144 screened items the majority class reaches 45.5\% and the cell mode 45.4\%, against 46.9\% (logistic) and 50.1\% (GBM): demographics add only +1.4 and +4.6 points. On the 15 evaluated items (Table~\ref{tab:wvs}), Gemini 3.1 Flash Lite (30 respondents) scores 25.7\% and gpt-oss-120b (40) 23.0\%, both within sampling error of the majority class and 9.5 and 11.3 points below GBM. Zero-shot Qwen2.5-7B (120 respondents, 1{,}716 rows) scores 22.1\%, 2.7 points below the majority class (95\% CI $-$5.6 to +0.1) and 15.3 below GBM. Its group differences show no directional validity ($r={-0.03}$, 345 cells; GBM 0.64), the profile changes accuracy by $-$1.3 points ($-$4.2 to +1.5), and on seven of 15 items (nine at a 90\% threshold) it gives the same answer to nearly every respondent. The 15 items are inherited from an earlier run and their majority class is 21 to 25\%, well below the 144-item figure, so LLM scores are compared with the majority class on the same rows. Subgroup gaps are not distinguishable from random group assignment in any of 12 API-model tests (11 of 12 $p>0.05$, none after Holm correction) nor in the 120-respondent run (smallest $p=0.082$); detection thresholds range from 4.5 to 26.7 points, above most gaps seen on Pew (1 to 2.5 points).
+
+\begin{table}[!t]
+\caption{WVS-7 India, 15 items: zero-shot LLM accuracy against baselines on the same rows (95\% respondent-bootstrap CIs).}
+\label{tab:wvs}
+\centering
+\scriptsize
+\input{tables/tab_wvs_matched.tex}
+\end{table}
+
+\section{Discussion}
+
+\textbf{What the profile does.} A zero-shot model does not ignore the profile; it varies with it far more than real answers do, but in directions that agree with the data only weakly, and the net effect on exact-match accuracy is slightly negative. This is consistent with persona effects being small and noisy~\cite{hu2024} and with over-determination~\cite{chen2026}, We did not vary prompts, so we cannot say whether richer or better-worded demographics would help.
+
+\textbf{What fine-tuning does.} Respondent-level fine-tuning yields item marginals and group differences approaching, but not reaching, a classifier's: accuracy ends 2.1 points below GBM and 0.5 below logistic regression, directional validity on the full fold is 0.82 against 0.91, and the two models agree on 72\% of predictions. That no gain is detectable on unseen items is compatible with an item-specific mapping from profile to answer; the port, the number of items and the narrow training set mean it is not evidence that no transfer is possible.
+
+\textbf{Where LLM respondents could add value.} Not, on this evidence, as substitutes for labelled data for the same question (matched classifiers are cheaper and more accurate), nor, at 7B with narrow fine-tuning, as predictors for new questions (no accuracy transfer). Remaining candidate settings are those our design cannot test: richer text-conditioned personas, much broader fine-tuning across many items, and aggregate distribution estimation using probabilities rather than argmax.
+
+\textbf{Evaluation practice.} Accuracy comparisons need a majority-class baseline (45.5\% over the 144 WVS-India items); inflation and concentration of hard predictions must be read against baselines that also show them; and subgroup-gap claims need a permutation null and detection thresholds, which at tens of respondents exceed any plausible effect.
+
+\section{Limitations}
+
+\begin{itemize}
+    \item \textbf{Single run.} One fold, one seed, one epoch. Scoring used fp16 on a T4 whereas training used bf16, and the lab run's own greedy decoding gives a lower accuracy for the same adapter (36.1\%), so results depend on the readout; we use the one that matches training and the zero-shot conditions.
+    \item \textbf{Narrow adaptation.} Fine-tuning used eight religion- and fertility-related items on one fold, one seed, one epoch and a full-sequence loss. Transfer to broader item sets, or after training on many items, is untested; the unseen-item null may reflect narrow training.
+    \item \textbf{Approximate port.} Transfer and probability results use an MLX re-implementation of the adapter that is about 7 to 8 points weaker than the original adapter scored on CUDA on the same rows, so the transfer comparison is conservative for the original model.
+    \item \textbf{Subsets and sample-efficiency.} Controls use nested random subsets (100 to 200 respondents). LLM sample-efficiency was not established: our small-model attempt collapsed (see above).
+    \item \textbf{Models.} Zero-shot results cover one 7B model locally and two free-tier API models; we did not test frontier models on these surveys (Chen et al.~\cite{chen2026} did, on US and cross-national data, with the same failures).
+    \item \textbf{Items and surveys.} Two surveys, two sets of eight and 15 items; no language axis (WVS interview language is constant). Pew survey weights are not used, so statements are about the sample, not the population.
+    \item \textbf{Transfer evidence.} The unseen-item comparison rests on eight items, 120 respondents and an approximate port; item-level uncertainty is large (Section~V-C).
+    \item \textbf{Metric.} Exact match on ordinal items with argmax predictions; distributional and aggregate fidelity are not evaluated, and directional-validity cells share respondents across axes.
+    \item \textbf{Interpretation.} The variance share is an in-sample $R^2$ increment; accuracy gaps conflate predictability with bias.
+\end{itemize}
+
+\textbf{Ethical considerations.} Both datasets are public and de-identified; WVS microdata are not redistributed. Simulated respondents should not replace sampling of real people, especially for groups where fidelity was lower.
+
+\section{Conclusion}
+
+A prompted 7B model varies strongly with a demographic profile but uses it weakly and slightly harmfully; respondent-level fine-tuning recovers most, though not all, of the accuracy and direction gap to classifiers on the trained questions, and shows no detectable accuracy gain on eight new ones. In the settings we tested, matched classifiers remain the benchmark that LLM respondents must beat, and held-out questions at larger scale are the experiment most likely to change that conclusion. Code, scripts (including runners that scale every experiment to a GPU) and raw model outputs accompany this paper.
+
+\section*{Data and Code Availability}
+Code and prompts: \url{https://github.com/bhanujjj/silicon-sampling-capstone} (branches \texttt{lab-package}, \texttt{pew-dataset-training}); analysis scripts, local MLX and CUDA runners and raw outputs are distributed with this paper's source. WVS-7 must be obtained from the WVS Association; Pew data are available from Pew Research Center.
+
+\section*{Acknowledgment}
+The authors thank their university's AI Lab for GPU access.
+
+\begin{thebibliography}{99}
+
+\bibitem{argyle2023}
+L.~P. Argyle, E.~C. Busby, N.~Fulda, J.~R. Gubler, C.~Rytting, and D.~Wingate, ``Out of one, many: Using language models to simulate human samples,'' \emph{Political Analysis}, vol.~31, no.~3, pp. 337--351, 2023.
+
+\bibitem{santurkar2023}
+S.~Santurkar, E.~Durmus, F.~Ladhak, C.~Lee, P.~Liang, and T.~Hashimoto, ``Whose opinions do language models reflect?'' in \emph{Proc. ICML}, 2023.
+
+\bibitem{chen2026}
+Z.~Chen, D.~Zhu, and L.~N. Zheng, ``When synthetic users fail: A cross-domain benchmark of LLM-simulated human survey responses,'' arXiv:2607.26348, 2026.
+
+\bibitem{miranda2025}
+F.~Miranda and P.~P. Balbi, ``Simulating public opinion: Comparing distributional and individual-level predictions from LLMs and random forests,'' \emph{Entropy}, vol.~27, no.~9, Art.~923, Sep. 2025.
+
+\bibitem{hu2024}
+T.~Hu and N.~Collier, ``Quantifying the persona effect in LLM simulations,'' in \emph{Proc. 62nd Annu. Meeting Assoc. Comput. Linguistics (ACL)}, vol.~1, Bangkok, Thailand, Aug. 2024, pp. 10289--10307.
+
+\bibitem{durmus2023}
+E.~Durmus \emph{et al.}, ``Towards measuring the representation of subjective global opinions in language models,'' arXiv:2306.16388, 2023.
+
+\bibitem{bisbee2024}
+J.~Bisbee, J.~D. Clinton, C.~Dorff, B.~Kenkel, and J.~M. Larson, ``Synthetic replacements for human survey data? The perils of large language models,'' \emph{Political Analysis}, vol.~32, no.~4, pp. 401--416, 2024.
+
+\bibitem{shankar2026}
+H.~Shankar, V.~S.~P., S.~Margapuri, D.~Mazumder, P.~Kumaraguru, and A.~Chakraborty, ``Mind the gap: Pitfalls of LLM alignment with Asian public opinion,'' in \emph{Proc. Int. AAAI Conf. Web and Social Media (ICWSM)}, 2026, arXiv:2603.06264.
+
+\bibitem{ziaei2026}
+R.~Ziaei, ``The limits of simulated societies: How post-training and survey fine-tuning erase cross-cultural variance,'' arXiv:2609.25760, 2026.
+
+\bibitem{kim2023}
+J.~Kim and B.~Lee, ``AI-augmented surveys: Leveraging large language models and surveys for opinion prediction,'' arXiv:2305.09620, 2023.
+
+\bibitem{suh2025}
+J.~Suh, E.~Jahanparast, S.~Moon, M.~Kang, and S.~Chang, ``Language model fine-tuning on scaled survey data for predicting distributions of public opinions,'' in \emph{Proc. 63rd Annu. Meeting Assoc. Comput. Linguistics (ACL)}, vol.~1, 2025, pp. 21147--21170.
+
+\bibitem{cao2025}
+Y.~Cao, H.~Liu, A.~Arora, I.~Augenstein, P.~R\"{o}ttger, and D.~Hershcovich, ``Specializing large language models to simulate survey response distributions for global populations,'' in \emph{Proc. NAACL}, 2025.
+
+\bibitem{krsteski2025}
+S.~Krsteski, G.~Russo, S.~Chang, R.~West, and K.~Gligori\'{c}, ``Valid survey simulations with limited human data: The roles of prompting, fine-tuning, and rectification,'' arXiv:2510.11408, 2025.
+
+\bibitem{sun2024}
+S.~Sun \emph{et al.}, ``Random silicon sampling: Simulating human sub-population opinion using a large language model based on group-level demographic information,'' arXiv:2402.18144, 2024.
+
+\bibitem{pew2021}
+Pew Research Center, ``Religion in India: Tolerance and segregation,'' Jun. 2021.
+
+\bibitem{wvs7}
+C.~Haerpfer, R.~Inglehart, A.~Moreno, C.~Welzel, K.~Kizilova, J.~Diez-Medrano, M.~Lagos, P.~Norris, E.~Ponarin, and B.~Puranen (eds.), \emph{World Values Survey: Round Seven, Country-Pooled Datafile Version 6.0.0}. Madrid, Spain and Vienna, Austria: JD Systems Institute \& WVSA Secretariat, 2024, doi:10.14281/18241.24.
+
+\bibitem{pedregosa2011}
+F.~Pedregosa \emph{et al.}, ``Scikit-learn: Machine learning in Python,'' \emph{J. Mach. Learn. Res.}, vol.~12, pp. 2825--2830, 2011.
+
+\bibitem{qwen2025}
+Qwen Team, ``Qwen2.5 technical report,'' arXiv:2412.15115, 2024.
+
+\bibitem{mlx2023}
+A.~Hannun, J.~Digani, A.~Katharopoulos, and R.~Collobert, ``MLX: Efficient and flexible machine learning on Apple silicon,'' software, 2023. [Online]. Available: https://github.com/ml-explore/mlx
+
+\bibitem{dettmers2023}
+T.~Dettmers, A.~Pagnoni, A.~Holtzman, and L.~Zettlemoyer, ``QLoRA: Efficient finetuning of quantized LLMs,'' in \emph{Advances in Neural Information Processing Systems (NeurIPS)}, vol.~36, 2023.
+
+\bibitem{hu2022}
+E.~J. Hu \emph{et al.}, ``LoRA: Low-rank adaptation of large language models,'' in \emph{Proc. ICLR}, 2022.
+
+\bibitem{gptoss2025}
+OpenAI, ``gpt-oss-120b \& gpt-oss-20b model card,'' arXiv:2508.10925, Aug. 2025.
+
+\bibitem{choi2026}
+E.~C. Choi, Y.~Kim, P.~Pugalenthi, H.-E. Chen, and B.-R. Huang, ``Beyond the mean: Three-axis fidelity for aligning LLM-based survey simulators from small pilot data,'' in \emph{Pluralistic Alignment Workshop at ICML}, 2026, arXiv:2606.28963.
+
+\bibitem{robbani2026}
+F.~D. Robbani, ``Readable, faithful, used: Three dissociable properties of demographic identity in a language model,'' arXiv:2608.18768, 2026.
+
+\bibitem{wang2026}
+C.~Wang, ``Silicon sampling answers with country-level assumptions, not individual attitudes: Cross-national evidence from the European Social Survey,'' arXiv:2609.16395, 2026.
+
+\bibitem{lam2026}
+N.~H.~Y. Lam, J.~X. Voo, and X.~Ma, ``The conditional superiority of fast silicon sampling,'' arXiv:2608.14079, 2026.
+
+\end{thebibliography}
+
+\end{document}
