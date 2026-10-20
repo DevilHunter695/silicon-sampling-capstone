@@ -23,6 +23,9 @@ set_text(paras[4], C.TITLE)
 for r in paras[4].runs: r.font.size = Pt(20)
 set_text(paras[6], C.AUTHORS)
 set_text(paras[7], C.AFFIL[0]); set_text(paras[8], C.AFFIL[1])
+for _p in (paras[7], paras[8]):
+    for r in _p.runs:
+        r.font.superscript = False; r.font.subscript = False; r.font.size = Pt(9); r.font.name = "Times New Roman"
 for p in (paras[9], paras[10]): p._p.getparent().remove(p._p)
 abs_p = paras[13]
 abs_p.runs[0].text = "Abstract"
@@ -31,6 +34,12 @@ for r in abs_p.runs[2:]: r._r.getparent().remove(r._r)
 kw = paras[15]
 kw.runs[1].text = "\u2014" + C.KEYWORDS
 for r in kw.runs[2:]: r._r.getparent().remove(r._r)
+
+# ---- drop the template's empty leading table and blank paragraphs (keeps the top margin exact)
+for _p in paras[0:4] + [paras[5]]:
+    if not _p.text.strip() and not _p._p.xpath('.//w:sectPr'): _p._p.getparent().remove(_p._p)
+for _t in d.tables[:1]:
+    if not any(c.text.strip() for r in _t.rows for c in r.cells): _t._tbl.getparent().remove(_t._tbl)
 
 # ---- remove template body after index terms (paragraph 16 onwards, all tables), keep final sectPr
 body = d.element.body
@@ -56,6 +65,11 @@ for m in re.finditer(r"\\bibitem\{([^}]*)\}\n(.*?)(?=\n\n\\bibitem|\n\n\\end\{th
     for a, b in (('\\"{o}', "\u00f6"), ("\\'{c}", "\u0107")): s = s.replace(a, b)
     s = re.sub(r"\s+", " ", s).strip()
     bib[m.group(1)] = s
+for _k, _first in (("argyle2023", "L. P. Argyle et al."), ("shankar2026", "H. Shankar et al."), ("cao2025", "Y. Cao et al."), ("wvs7", "C. Haerpfer et al. (eds.),")):
+    if _k in bib:
+        _rest = bib[_k]
+        _i = _rest.index("\u201c") if "\u201c" in _rest else _rest.index(",")+1
+        bib[_k] = (_first + (", " if "\u201c" in _rest else " ") + _rest[_i:]).replace(" ,", ",") if "\u201c" in _rest else _first + " " + _rest[_rest.index("World Values"):]
 
 # ---- citation numbering by first appearance
 order = []
