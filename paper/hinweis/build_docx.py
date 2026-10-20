@@ -29,10 +29,10 @@ for _p in (paras[7], paras[8]):
 for p in (paras[9], paras[10]): p._p.getparent().remove(p._p)
 abs_p = paras[13]
 abs_p.runs[0].text = "Abstract"
-abs_p.runs[1].text = "\u2014" + C.ABSTRACT
+abs_p.runs[1].text = ": " + C.ABSTRACT
 for r in abs_p.runs[2:]: r._r.getparent().remove(r._r)
 kw = paras[15]
-kw.runs[1].text = "\u2014" + C.KEYWORDS
+kw.runs[1].text = ": " + C.KEYWORDS
 for r in kw.runs[2:]: r._r.getparent().remove(r._r)
 
 # ---- drop the template's empty leading table and blank paragraphs (keeps the top margin exact)
