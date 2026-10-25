@@ -1,0 +1,17 @@
+Paper ID: AIDE-2026_591
+Review status: Accepted with Modification (Full Research Paper)
+Revised title: How Do LLM Respondents Use Demographics? Prompting, Fine-Tuning and Held-Out-Item Transfer for Survey Simulation in India
+
+Reviewer comment 1: "The overall structure of the paper needs revision, including misplaced text, inconsistent headings, and improper section organization."
+Response: The paper was reorganised into nine consistently numbered sections (I Introduction, II Related Work, III Datasets, IV Proposed Evaluation Framework, V Computational Requirements and Scalability, VI Results and Analysis, VII Discussion, VIII Limitations, IX Conclusions and Future Work), with lettered subsections throughout. Methods now sit only in Section IV and results only in Section VI. Every table and figure appears after its first mention. A framework diagram (Fig. 1), an example prompt (Table I) and a roadmap paragraph at the end of the Introduction were added.
+
+Reviewer comment 2: "The paper should discuss computational complexity, scalability, and/or resource requirements, where relevant."
+Response: A new Section V reports measured hardware and cost (Table II: fine-tuning time, per-row scoring time on a T4 GPU, local and API costs), the complexity of the method (linear in respondent-item rows, about 3.5 TFLOP per row), extrapolated costs for scaling to the full survey, and practical implications. The Discussion now relates cost to accuracy.
+
+Rating items:
+- Keywords (rated lowest): expanded from 8 to 12 and aligned with the field (silicon sampling, survey simulation, parameter-efficient fine-tuning, algorithmic fidelity, calibration, computational social science, and others).
+- Title: made more specific (survey simulation, LLM respondents).
+- Figures and tables: a new block diagram, a prompt table, consistent captions, and tables placed with their text.
+- Discussion and conclusion: a cost-and-benefit paragraph was added, and the conclusion now includes concrete future work.
+
+Length: 8 pages in the conference template, including references.

@@ -5,7 +5,7 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
-import content as C
+import content_v3 as C
 
 TEMPLATE, OUT = sys.argv[1], sys.argv[2]
 BIB = sys.argv[3]  # paper_8p_template.tex (for reference strings)
@@ -80,7 +80,7 @@ def scan(t):
             if k not in order: order.append(k)
 for b in C.B:
     if b[0] in ("p",): scan(b[1])
-    if b[0] == "table": scan(b[1])
+    if b[0] in ("table", "box"): scan(b[1])
 num = {k: i + 1 for i, k in enumerate(order)}
 def cite_sub(t):
     return re.sub(r"\[@([^\]]*)\]", lambda m: ", ".join("[%d]" % num[k.strip().lstrip("@")] for k in m.group(1).split(",")), t)
@@ -131,8 +131,27 @@ def table_block(cap, rows, widths):
             cp.alignment = WD_ALIGN_PARAGRAPH.LEFT if ci == 0 else WD_ALIGN_PARAGRAPH.CENTER
             r = cp.add_run(val); r.font.name = FONT; r.font.size = Pt(8); r.bold = (ri == 0)
             borders(c, top=12 if ri == 0 else None, bottom=(12 if ri in (0, len(rows) - 1) else None))
+            if ri < len(rows) - 1: cp.paragraph_format.keep_with_next = True
     sp = d.add_paragraph(); sp.paragraph_format.space_after = Pt(2)
     sp.paragraph_format.line_spacing = Pt(4)
+
+def box_block(cap, text):
+    p = d.add_paragraph(); p.alignment = WD_ALIGN_PARAGRAPH.CENTER; p.paragraph_format.space_before = Pt(10); p.paragraph_format.space_after = Pt(4); p.paragraph_format.keep_with_next = True
+    m = re.match(r"(Table [IVX]+\.)\s*(.*)", cap)
+    add_runs(p, m.group(1) + " ", size=8, smallcaps=True); add_runs(p, m.group(2), size=8, smallcaps=True)
+    t = d.add_table(rows=1, cols=1); t.alignment = WD_TABLE_ALIGNMENT.CENTER; t.autofit = False
+    c = t.cell(0, 0); c.width = Cm(15.0)
+    tcPr = c._tc.get_or_add_tcPr(); bd = OxmlElement("w:tcBorders")
+    for side in ("top", "left", "bottom", "right"):
+        e = OxmlElement("w:" + side); e.set(qn("w:val"), "single"); e.set(qn("w:sz"), "8"); e.set(qn("w:space"), "0"); e.set(qn("w:color"), "000000"); bd.append(e)
+    tcPr.append(bd)
+    first = True
+    for line in text.split("\n"):
+        cp = c.paragraphs[0] if first else c.add_paragraph()
+        first = False
+        cp.style = d.styles["table copy"]; cp.alignment = WD_ALIGN_PARAGRAPH.LEFT
+        r = cp.add_run(line); r.font.name = FONT; r.font.size = Pt(8)
+    sp = d.add_paragraph(); sp.paragraph_format.space_after = Pt(2); sp.paragraph_format.line_spacing = Pt(4)
 
 def fig_block(path, cap, width):
     p = d.add_paragraph(); p.alignment = WD_ALIGN_PARAGRAPH.CENTER; p.paragraph_format.space_before = Pt(8); p.paragraph_format.keep_with_next = True
@@ -147,6 +166,7 @@ for blk in C.B:
     elif k == "p": body_par(blk[1])
     elif k == "table": table_block(blk[1], blk[2], blk[3])
     elif k == "fig": fig_block(blk[1], blk[2], blk[3])
+    elif k == "box": box_block(blk[1], blk[2])
 
 # acknowledgment + references
 sec_head("Acknowledgment")
