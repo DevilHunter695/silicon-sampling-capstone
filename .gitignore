@@ -86,3 +86,6 @@ paper/ieee/analysis/kaggle_fold0_out/
 *.zip
 paper/ieee/analysis/*wvs*.jsonl
 paper/ieee/analysis/*wvs*.parquet
+
+# generated live-server adapter conversion
+*_mlx/

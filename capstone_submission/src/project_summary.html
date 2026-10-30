@@ -1,0 +1,74 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Project Summary: Silicon Sampling for Indian Public Opinion</title>
+<style>
+@page{size:A4;margin:16mm 15mm}*{box-sizing:border-box}body{font-family:Georgia,"Times New Roman",serif;color:#1a2238;font-size:11pt;line-height:1.45;margin:0}
+h1{font-size:23pt;margin:0 0 2pt;color:#14264f;letter-spacing:-.01em}.sub{color:#5a6785;font-family:Helvetica,Arial,sans-serif;font-size:10pt;margin-bottom:12pt}
+h2{font-family:Helvetica,Arial,sans-serif;font-size:11.5pt;text-transform:uppercase;letter-spacing:.08em;color:#b8312c;border-bottom:1.5px solid #b8312c;padding-bottom:3pt;margin:16pt 0 7pt;break-after:avoid}
+h3{font-family:Helvetica,Arial,sans-serif;font-size:10.5pt;margin:9pt 0 2pt;color:#14264f;break-after:avoid}p{margin:4pt 0}ul{margin:3pt 0 5pt 16pt;padding:0}li{margin:2pt 0}
+table{border-collapse:collapse;width:100%;font-family:Helvetica,Arial,sans-serif;font-size:9.5pt;margin:6pt 0;break-inside:avoid}th{background:#14264f;color:#fff;text-align:left;padding:4pt 6pt}td{padding:4pt 6pt;border-bottom:1px solid #d8dcec}tr:nth-child(even) td{background:#f4f6fb}
+.box{background:#fff7e0;border-left:4px solid #d99a1b;padding:7pt 10pt;margin:8pt 0;font-family:Helvetica,Arial,sans-serif;font-size:10pt;break-inside:avoid}.q{break-inside:avoid;margin:6pt 0}.q b{color:#14264f}
+code{font-family:Menlo,monospace;font-size:9pt;background:#eef1f8;padding:0 3pt;border-radius:3px}
+</style></head><body>
+<h1>Silicon Sampling for Indian Public Opinion</h1><div class="sub">Complete project summary, start to finish &middot; Group 55 &middot; MPSTME Capstone, A.Y. 2026-27 &middot; Mentor: Ms. Khushbu Chauhan</div>
+
+<h2>1. The project in one paragraph</h2>
+<p>Silicon sampling gives a language model a respondent's demographic profile and treats its answer as that person's survey answer. If it worked, surveys would be far cheaper. We tested it in India on the Pew Religion in India survey (29,999 adults) and WVS-7 India (1,692 adults). We scored every method on the same respondent-question rows as simple classifiers, and looked beyond accuracy: direction of group differences, calibration, subgroup gaps and compute cost. The finding: a prompted 7B model uses the profile heavily but not usefully (16.1% accuracy against 30.4% for always guessing the most common answer). QLoRA fine-tuning on respondent data reaches 38.0%, close to the best classifier (40.0%) and well calibrated, but it shows no detectable gain on questions it was not trained on.</p>
+
+<h2>2. Should you only read the paper?</h2>
+<p>No. The paper is the right source for the <b>findings and the method</b>, and you should read it fully. It does not tell the story of how the work unfolded, the engineering lessons, the compute figures in plain terms, the deliverables, or how to answer questions. This document covers those. Read it first, then the paper, then keep Section 9 (likely questions) open on the day.</p>
+
+<h2>3. The journey, in order</h2>
+<h3>Phase 1: WVS-7 India, zero-shot with free models</h3>
+<ul><li>Built a codebook-driven pipeline: 373 candidate WVS items screened down to 144, prompts written from official labels, five-fold respondent-level splits.</li>
+<li>Ran Gemini 3.1 Flash Lite, gpt-oss-120b (via Groq) and a 4-bit Qwen2.5-7B on an Apple M1 (about 2.3 s per prompt). Accuracy stayed at 22 to 26%, at or just above the majority class on the same rows, while simple classifiers on 14 attributes reached 34 to 38%.</li>
+<li>Found and fixed real bugs: region labels in the prompt were wrong on every code until checked against the official annex (this moved subgroup gaps by several points), the cache treated failures as final, and the first prompt caused 13% refusals (the final wording drove it to 0%).</li></ul>
+<h3>Phase 2: Pivot to Pew, matched baselines and fine-tuning</h3>
+<ul><li>Switched to Pew Religion in India for its size. 8 items, five folds, fold 0: 23,999 training and 6,000 test respondents, 46,209 test answers.</li>
+<li>Added majority, logistic regression and gradient boosting on identical rows, out-of-fold, with respondent-clustered bootstrap and Holm-corrected permutation tests.</li>
+<li>QLoRA fine-tuning of Qwen2.5-7B-Instruct on the university AI lab GPU: 184,853 examples, 5,777 steps, 396.7 minutes (6.6 hours), 10.1M trainable parameters (rank 16, alpha 32, attention projections, NF4 4-bit base).</li>
+<li>An apparent collapse on one item turned out to be a decoding artefact of the original lab run. The faithful readout (next-digit probability after the prompt) was scored on Kaggle 2 x T4 in fp16 and gave 38.0%.</li></ul>
+<h3>Phase 3: Extra experiments</h3>
+<ul><li><b>Scale:</b> gpt-oss-120b zero-shot scored 27.6% (100 respondents), at the majority class, not above it.</li>
+<li><b>Data needed:</b> logistic regression needs about 400 labelled respondents to beat the majority class, gradient boosting about 1,600.</li>
+<li><b>Transfer:</b> applying the adapter to 8 unseen Pew items gave 28.9% against 28.5% for the base model. With 8 items the item-level difference had a standard error of 10.2 and permutation p = 0.18, so we call it inconclusive. This used an approximate MLX port, not the original run.</li></ul>
+<h3>Phase 4: Writing and publication</h3>
+<ul><li>Several paper versions (IEEE-style drafts, 6, 8 and longer). Chosen venue: Hinweis Fifth International Conference on AI and Data Science (AIDE-2026), paper ID 591, <b>accepted with modification</b>. Camera-ready revised and sent. Registration needs the form, copyright form and payment proof (fee Rs. 10,500) to the conference email by 20 Nov 2026.</li></ul>
+<h3>Phase 5: Capstone package and demo</h3>
+<ul><li>34-page project report, presentation (college template, 4:3), landscape and portrait posters (named 55), acceptance proof, and an interactive offline demo page.</li></ul>
+
+<h2>4. Data and method</h2>
+<table><tr><th>Item</th><th>Pew Religion in India</th><th>WVS-7 India</th></tr>
+<tr><td>Respondents</td><td>29,999 (face-to-face, 2019-20)</td><td>1,692 (2023)</td></tr><tr><td>Items used</td><td>8 for fine-tuning, items 9 to 16 held out for transfer</td><td>15 for zero-shot replication</td></tr>
+<tr><td>Profile attributes</td><td>9: sex, age, marital status, education, income, religion, caste, urban/rural, region</td><td>14, language held constant</td></tr></table>
+<p>Every predictor sees the same prompt and is scored on the same rows. The model is read out as the probability of each answer digit, which gives calibrated probabilities as well as a label. Metrics: accuracy, negative log-likelihood, expected calibration error, profile variance share, directional validity (correlation and slope of group differences), Jensen-Shannon divergence, and Holm-corrected subgroup gaps.</p>
+
+<h2>5. Results</h2>
+<table><tr><th>Method (Pew fold 0, 46,209 answers)</th><th>Accuracy</th><th>NLL</th><th>ECE</th></tr><tr><td>Majority class</td><td>30.4%</td><td>1.59</td><td>0.001</td></tr><tr><td>Logistic regression</td><td>38.5%</td><td>1.47</td><td>0.004</td></tr><tr><td>Gradient boosting</td><td>40.0%</td><td>1.44</td><td>0.005</td></tr><tr><td><b>Fine-tuned Qwen2.5-7B</b></td><td><b>38.0%</b></td><td>1.48</td><td>0.009</td></tr><tr><td>Zero-shot Qwen2.5-7B</td><td>16.1%</td><td>4.26</td><td>0.519</td></tr></table>
+<ul><li>Zero-shot: on a 200-respondent subset the profile explains 29% of the model's prediction variance against 4% for real answers, yet removing it raises accuracy by 3.6 points. The model reacts strongly and in the wrong direction.</li>
+<li>Fine-tuning closes 79% of the gap to gradient boosting, is 7.6 points above majority, and trails gradient boosting on every item (by 1.2 to 2.7 points).</li>
+<li>Direction of group differences: zero-shot r = 0.22 (slope 0.18); fine-tuned 0.58 on the subset and 0.82 on the full fold; gradient boosting 0.64 and 0.91.</li>
+<li>Subgroup gaps (fine-tuned): religion 10.0 points, region 8.8, age 2.7, income 1.7, urban/rural 1.3.</li>
+<li>Per question: best on number of children (56.4% against 31.6% majority), weakest on opinion questions such as politicians in religion (36.7% against 35.4%).</li>
+<li>Confidence: above 70% confidence the model is right 87.3% of the time, on 1,338 answers, nearly all the number-of-children question. The driver is marital status: unmarried respondents are 98.8% confident and 96.6% accurate. A classifier finds the same rule, so this shows a learned pattern, not superiority.</li></ul>
+
+<h2>6. Compute</h2>
+<table><tr><th>Task</th><th>Hardware</th><th>Measured</th></tr><tr><td>Fine-tuning, 184,853 examples</td><td>One lab GPU</td><td>6.6 h</td></tr><tr><td>Scoring one condition, 46,209 rows</td><td>2 x Kaggle T4</td><td>about 75 min (0.19 to 0.21 s per row per GPU)</td></tr><tr><td>Local zero-shot</td><td>Apple M1, 16 GB</td><td>2.3 s per prompt</td></tr><tr><td>Classifiers</td><td>Laptop CPU</td><td>under 1 minute</td></tr></table>
+<p>Extrapolations, not measurements: scoring all 29,999 respondents on 73 items is about 2.2 million rows, roughly 116 T4-hours; fine-tuning on all 73 items is about 63 hours on the lab GPU.</p>
+
+<h2>7. Honest limitations</h2>
+<ul><li>One fold, one seed, one epoch. Results are from a single training run.</li><li>The transfer test used an approximate MLX port and only 8 held-out items, so it is inconclusive, not proof of failure.</li><li>Zero-shot controls on 100 to 200 respondent subsets; no frontier model on these surveys; survey weights not applied.</li><li>Exact-match accuracy; scoring in fp16 against bf16 training.</li><li>The live demo uses a 4-bit MLX base that differs slightly from the training base.</li></ul>
+
+<h2>8. What you have and where it is</h2>
+<table><tr><th>Item</th><th>Location</th></tr>
+<tr><td>Submission files (report, PPT, posters, paper, acceptance proof)</td><td><code>~/Downloads/Capstone_Group55/</code></td></tr><tr><td>Interactive demo</td><td><code>Capstone_Group55/Live_Demo.html</code> and <code>demo_app/</code> in the repo</td></tr>
+<tr><td>Code, paper sources, notebooks</td><td>github.com/DevilHunter695/silicon-sampling-capstone</td></tr><tr><td>Hand-off notes</td><td><code>CONTINUATION_BRIEF.md</code> in the repo</td></tr></table>
+<div class="box"><b>Still on you:</b> mentor signature on the report; open the PPT once in PowerPoint; ask Krishna Samdani about late acceptance (the 25 Oct deadline passed); Hinweis registration and payment by 20 Nov; add any new Kaggle results if they arrive.</div>
+
+<h2>9. Likely questions, with honest answers</h2>
+<div class="q"><b>Why is accuracy only 38%?</b> Individual opinions are hard to predict from nine demographic attributes, and every method is limited: majority 30.4%, best classifier 40.0%. The meaningful comparison is the lift over the majority guess, and the calibration, which is excellent.</div>
+<div class="q"><b>Is the model better than a simple classifier?</b> No. Gradient boosting is 2 points ahead on accuracy at a tiny fraction of the cost. The model's value is that it can be conditioned in language and may transfer, which we could not confirm.</div>
+<div class="q"><b>Does fine-tuning generalise to new questions?</b> We found no detectable gain on 8 unseen items (28.9% vs 28.5%, p = 0.18) but the test was small and approximate. It is an open question.</div>
+<div class="q"><b>Is the demo live?</b> The default demo replays stored outputs from the full run. The optional live button runs Qwen2.5-7B with our adapter on the laptop, using a 4-bit MLX base, so probabilities can differ slightly.</div>
+<div class="q"><b>Why does zero-shot do so badly?</b> It reacts to the profile strongly (29% of its variance against 4% in real answers) but in the wrong direction, so the profile lowers its accuracy by 3.6 points.</div>
+<div class="q"><b>What are the confident predictions?</b> Mostly unmarried respondents predicted to have no children, a simple rule a classifier also finds. We say so openly.</div>
+<div class="q"><b>Was the paper accepted?</b> Yes, at Hinweis AIDE-2026, paper ID 591, accepted with modification. The camera-ready is revised.</div>
+</body></html>
