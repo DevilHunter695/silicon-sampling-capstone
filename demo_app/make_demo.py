@@ -1,7 +1,12 @@
-"""Build demo.html: one offline interactive page over the stored Pew fold-0 model outputs.
-Input: demo_rows.parquet from build_data.py. Output: demo.html (no server, no internet)."""
+"""Build an offline interactive demo over the stored Pew fold-0 model outputs.
+Usage: python make_demo.py demo_rows.parquet out.html [full|selected]
+  full     all 46,209 test answers, nothing picked.
+  selected only the answers where the fine-tuned model was >=70% confident, plus our best correct examples.
+Input: demo_rows.parquet from build_data.py. Output needs no server and no internet."""
 import sys, json, numpy as np, pandas as pd
 src, out = sys.argv[1], sys.argv[2]
+mode = sys.argv[3] if len(sys.argv) > 3 else "full"
+assert mode in ("full", "selected")
 d = pd.read_parquet(src)
 for c in ("ft", "zs", "gboost", "logistic", "majority", "options", "profile"):
     d[c] = d[c].apply(lambda x: None if x is None else json.loads(x))
@@ -34,6 +39,22 @@ for lab, g in (("Unmarried, no children", hi[hi.pred == 0]), ("Large family (3+ 
 for q, g in d[(d.qid != "QFERTrec") & d.ok].groupby("qid"):
     for i in g.sort_values("conf", ascending=False).head(3).index: curated.append([int(i), "Most confident correct: " + NAMES[q]])
 tot = dict(n=len(d), acc=float(d.ok.mean()), mj=0.3036, gb=0.4004, zs=0.1608)  # gb/mj from paper tables (pew_aligned_rows.parquet)
-data = json.dumps(dict(cats=cats, disp=disp, attrs=ATTRS, R=R, Q=Q, rows=rows, curated=curated, tot=tot), separators=(",", ":"), ensure_ascii=False)
+acc = lambda g, col: float((g[col].apply(lambda x: int(np.argmax(x))) == g.true_idx).mean())
+byq = [dict(name=NAMES[q], n=int(len(g)), ft=acc(g, "ft"), gb=acc(g, "gboost"), zs=acc(g, "zs"), mj=acc(g, "majority")) for q, g in ((q, d[d.qid == q]) for q in qs)]
+ch = d[d.qid == "QFERTrec"]
+marital = []
+for lab, v in (("Unmarried", "Unmarried"), ("Married / partner", "Married or living with a partner"), ("Divorced / widowed", "Divorced, separated, partner is no longer alive")):
+    g = ch[ch.profile.apply(lambda p: str(p.get("marital_status")) == v)]
+    marital.append(dict(l=lab, n=int(len(g)), a=float(g.ok.mean()), h=float((g.conf >= .7).mean())))
+summ = dict(byq=byq, marital=marital, hi=int((d.conf >= .7).sum()), hiacc=float(d[d.conf >= .7].ok.mean()))
+if mode == "selected":
+    keep = sorted(set(d.index[d.conf >= .7]) | {i for i, _ in curated})
+    newi = {o: n for n, o in enumerate(keep)}
+    used = sorted({rows[i][0] for i in keep}); rmap = {o: n for n, o in enumerate(used)}
+    R = [R[o] for o in used]
+    rows = [[rmap[rows[i][0]]] + rows[i][1:] for i in keep]
+    curated = [[newi[i], lab] for i, lab in curated]
+data = json.dumps(dict(mode=mode, cats=cats, disp=disp, attrs=ATTRS, R=R, Q=Q, rows=rows, curated=curated if mode == "selected" else [], tot=tot, sum=summ), separators=(",", ":"), ensure_ascii=False)
 html = open(__file__.replace("make_demo.py", "template.html")).read().replace("__DATA__", data)
+html = html.replace("<title>Group 55 Interactive Demo</title>", "<title>Group 55 Demo %s</title>" % ("Selected Data" if mode == "selected" else "Full Data"))
 open(out, "w").write(html); print("wrote", out, len(html) // 1024, "KB", tot)
