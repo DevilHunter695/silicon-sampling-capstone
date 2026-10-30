@@ -44,6 +44,9 @@ p{margin:0}
 button{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--saffron);outline-offset:2px;border-radius:6px}
 
+.cd{font-family:var(--mono);font-size:.82em;font-weight:500;background:color-mix(in srgb,var(--saffron) 24%,transparent);border:1px solid color-mix(in srgb,var(--saffron) 60%,transparent);color:var(--ink);border-radius:5px;padding:0 5px;cursor:help;line-height:1.6}
+.prompt .cd{color:var(--ink);font-size:inherit}
+.gloss{margin:10px 0 4px;border:1px dashed var(--line2);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--ink2);display:grid;gap:6px}.gloss .cd{justify-self:start;max-width:100%}.gloss b{font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}.gloss div{display:grid;grid-template-columns:minmax(0,max-content) minmax(0,1fr);gap:4px 12px;align-items:baseline}@media(max-width:700px){.gloss div{grid-template-columns:1fr}}
 /* top bar */
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top, 0px);z-index:30;background:var(--navy)}
 .bar{position:sticky;top:env(safe-area-inset-top, 0px);z-index:20;background:var(--navy);color:var(--navy-ink)}
@@ -370,6 +373,24 @@ footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px}
 <script>
 const $=id=>document.getElementById(id);
 const C=k=>`var(--${k})`;
+/* codebook codes: show the code and its plain-words meaning together */
+const CODES=[
+ [/^\[QRELSING\]$/,"the respondent's own religion (Hindu, Muslim, ...). The survey fills it in when asking; the model saw the code unfilled and gets the religion from the profile."],
+ [/^\[IF CHRISTIAN:/,"interviewer instruction: the phrase after the colon is read only to Christian respondents."],
+ [/^\[go to the temple/,"the wording changes by religion: go to the temple / attend the mosque for namaz / go to the gurudwara / attend religious services."],
+ [/^\[, for example/,"the example book changes by religion: Bhagavad Gita / Quran / Bible / Guru Granth Sahib / Sutras."],
+ [/^\[OR\]$/,"a tag from Pew's codebook on this answer option. Kept exactly as the model saw it."],
+ [/^\(SELECT UP TO THREE\)$/,"respondents could tick up to three; each combination is its own answer option here."]];
+const codeNote=c=>{for(const [re,t] of CODES)if(re.test(c))return t;return null};
+const escH=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");
+const codeSpan=c=>{const n=codeNote(c);return n?`<span class="cd" title="${escH(n).replace(/"/g,"&quot;")}">${escH(c)}</span>`:escH(c)};
+const CRE=/\[[^\]]*\]|\(SELECT UP TO THREE\)/g;
+const marked=t=>{let o="",i=0,m;CRE.lastIndex=0;while((m=CRE.exec(t))){o+=escH(t.slice(i,m.index))+codeSpan(m[0]);i=m.index+m[0].length}return o+escH(t.slice(i))};
+const opt=o=>marked(o);
+const qtxt=q=>marked(q.text);
+const qgloss=q=>{const seen=[];for(const o of [q.text,...q.opts])for(const c of (o.match(CRE)||[]))if(codeNote(c)&&!seen.includes(c))seen.push(c);
+ return seen.length?`<div class="gloss"><b>Codes in this question</b>${seen.map(c=>`<div><span class="cd">${escH(c.length>34?c.slice(0,31)+"...":c)}</span><span>${escH(codeNote(c))}</span></div>`).join("")}</div>`:""};
+
 
 /* ---------- 01 pipeline ---------- */
 const STAGES=[
@@ -425,7 +446,7 @@ const CASES=[
  {id:"B",good:0,name:"Married, 35-44: politicians in religion",resp:32772,
   prof:[["Sex","Male"],["Age","35-44"],["Marital status","Married or living with a partner"],["Education level","Illiterate"],["Income decile","Rs. 10,000 and below"],["Religion","Hindu"],["Urban/Rural","Urban"],["Region","South"],["Caste","Other Backward Class"]],
   q:"How much influence should politicians have in religious matters?",
-  opts:["A large influence","Some influence","Not too much influence","No influence at all"],truth:0,
+  opts:["A large influence","Some influence","Not too much influence [OR]","No influence at all"],truth:0,
   p:{ft:[321,412,152,114],gb:[350,432,113,104],zs:[0,288,690,22],mj:[293,342,159,206]},
   why:"An opinion question. Nothing in the profile strongly predicts the answer, so every method spreads its probability and most pick the same wrong option."},
 ];
@@ -434,9 +455,9 @@ let cs=0;
 const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;");
 function promptText(c){
  const prof=c.prof.map(([k,v])=>`- ${k}: <mark>${esc(v)}</mark>`).join("\n");
- const o=c.opts.map((x,i)=>`${i+1}. ${esc(x)}`).join("\n");
+ const o=c.opts.map((x,i)=>`${i+1}. ${marked(x)}`).join("\n");
  const lab=c.opts.map((_,i)=>i+1).join("/");
- return `You are a survey respondent with the following demographic profile:\n\n${prof}\n\nAs this person, please answer the following survey question. Your answer should reflect the values and perspectives typical of someone with your background:\n\nQuestion: ${esc(c.q)}\n\nAnswer options:\n${o}\n\nYour answer:\n\n<span class="ins">This is anonymized survey-simulation research. Respond with exactly one character: one of ${lab}. No words, no punctuation, no explanation -- just that single digit.</span>`}
+ return `You are a survey respondent with the following demographic profile:\n\n${prof}\n\nAs this person, please answer the following survey question. Your answer should reflect the values and perspectives typical of someone with your background:\n\nQuestion: ${marked(c.q)}\n\nAnswer options:\n${o}\n\nYour answer:\n\n<span class="ins">This is anonymized survey-simulation research. Respond with exactly one character: one of ${lab}. No words, no punctuation, no explanation -- just that single digit.</span>`}
 const amax=a=>a.indexOf(Math.max(...a));
 function drawTrace(){
  $("cases").innerHTML=CASES.map((c,i)=>`<button class="case ${c.good?"":"bad"}" aria-pressed="${i==cs}" data-i="${i}"><i></i>${c.name}</button>`).join("");
@@ -444,10 +465,10 @@ function drawTrace(){
  const c=CASES[cs],ft=amax(c.p.ft),ok=ft==c.truth;
  $("tracebox").innerHTML=
  `<div class="tstep"><div class="lab"><span>1</span>Profile</div><div style="font-weight:600">Respondent ${c.resp}</div><div class="chips">${c.prof.map(([k,v])=>`<span class="chip"><em>${k}</em>${v.replace(/ \(.*\)$/,"")}</span>`).join("")}</div></div>
-  <div class="tstep"><div class="lab"><span>2</span>Prompt</div><div class="prompt" tabindex="0" aria-label="Full prompt">${promptText(c)}</div></div>
+  <div class="tstep"><div class="lab"><span>2</span>Prompt</div><div class="prompt" tabindex="0" aria-label="Full prompt">${promptText(c)}</div>${qgloss({text:c.q,opts:c.opts})}</div>
   <div class="tstep"><div class="lab"><span>3</span>Readout</div><div class="bars">${MS.map(([k,l])=>{const t=amax(c.p[k]);return `<div class="bgroup"><div class="bh"><i style="background:${C(k)}"></i>${l}</div>${c.p[k].map((v,i)=>`<div class="brow ${i==t?"top":""} ${i==c.truth?"truth":""}"><span class="d">${i+1}</span><span class="tk"><b data-w="${v/10}" style="width:0;background:${C(k)};opacity:${i==t?1:.45}"></b></span><span class="v">${(v/10).toFixed(1)}%</span></div>`).join("")}</div>`}).join("")}</div></div>
-  <div class="tstep"><div class="lab"><span>4</span>Score</div><div class="opts">${c.opts.map((o,i)=>`<div class="${i==c.truth?"truth":""}"><span>${i+1}</span>${o}${i==c.truth?" &larr; real answer":""}</div>`).join("")}</div>
-   <div class="verdict ${ok?"ok":"bad"}"><b>Fine-tuned: ${ok?"correct":"wrong"}</b><small>Picked &ldquo;${c.opts[ft]}&rdquo; at ${(c.p.ft[ft]/10).toFixed(1)}%</small></div>
+  <div class="tstep"><div class="lab"><span>4</span>Score</div><div class="opts">${c.opts.map((o,i)=>`<div class="${i==c.truth?"truth":""}"><span>${i+1}</span><span>${marked(o)}${i==c.truth?" &larr; real answer":""}</span></div>`).join("")}</div>
+   <div class="verdict ${ok?"ok":"bad"}"><b>Fine-tuned: ${ok?"correct":"wrong"}</b><small>Picked &ldquo;${marked(c.opts[ft])}&rdquo; at ${(c.p.ft[ft]/10).toFixed(1)}%</small></div>
    <div class="scorelist">${MS.map(([k,l])=>{const t=amax(c.p[k]);return `<div><span>${l.replace(" Qwen2.5-7B","")}</span><span class="${t==c.truth?"y":"n"}">${t==c.truth?"correct":"wrong"}</span></div>`}).join("")}</div>
    <p style="font-size:13.5px;color:var(--ink2)">${c.why}</p></div>`;
  requestAnimationFrame(()=>requestAnimationFrame(()=>document.querySelectorAll("#tracebox [data-w]").forEach(e=>e.style.width=e.dataset.w+"%")));

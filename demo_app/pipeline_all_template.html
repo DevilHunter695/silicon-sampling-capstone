@@ -44,6 +44,9 @@ p{margin:0}
 button{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--saffron);outline-offset:2px;border-radius:6px}
 
+.cd{font-family:var(--mono);font-size:.82em;font-weight:500;background:color-mix(in srgb,var(--saffron) 24%,transparent);border:1px solid color-mix(in srgb,var(--saffron) 60%,transparent);color:var(--ink);border-radius:5px;padding:0 5px;cursor:help;line-height:1.6}
+.prompt .cd{color:var(--ink);font-size:inherit}
+.gloss{margin:10px 0 4px;border:1px dashed var(--line2);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--ink2);display:grid;gap:6px}.gloss .cd{justify-self:start;max-width:100%}.gloss b{font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}.gloss div{display:grid;grid-template-columns:minmax(0,max-content) minmax(0,1fr);gap:4px 12px;align-items:baseline}@media(max-width:700px){.gloss div{grid-template-columns:1fr}}
 /* top bar */
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top, 0px);z-index:30;background:var(--navy)}
 .bar{position:sticky;top:env(safe-area-inset-top, 0px);z-index:20;background:var(--navy);color:var(--navy-ink)}
@@ -290,7 +293,7 @@ footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px}
   </div>
   <div class="tally" id="tally"></div>
   <div class="panel trace" id="tracebox"></div>
-  <p class="note">&ldquo;Only correct&rdquo; and &ldquo;Only wrong&rdquo; are filters you choose; the tally above counts only draws made with &ldquo;All rows&rdquo;, so it stays an unselected sample.</p>
+  <p class="note">&ldquo;Only correct&rdquo; and &ldquo;Only wrong&rdquo; are filters you choose; the tally above counts only draws made with &ldquo;All rows&rdquo; and &ldquo;All 8 questions&rdquo;, so it stays an unselected sample.</p>
 </div></section>
 
 <section id="data"><div class="wrap">
@@ -377,6 +380,24 @@ footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px}
 const D=__DATA__;
 const $=id=>document.getElementById(id);
 const C=k=>`var(--${k})`;
+/* codebook codes: show the code and its plain-words meaning together */
+const CODES=[
+ [/^\[QRELSING\]$/,"the respondent's own religion (Hindu, Muslim, ...). The survey fills it in when asking; the model saw the code unfilled and gets the religion from the profile."],
+ [/^\[IF CHRISTIAN:/,"interviewer instruction: the phrase after the colon is read only to Christian respondents."],
+ [/^\[go to the temple/,"the wording changes by religion: go to the temple / attend the mosque for namaz / go to the gurudwara / attend religious services."],
+ [/^\[, for example/,"the example book changes by religion: Bhagavad Gita / Quran / Bible / Guru Granth Sahib / Sutras."],
+ [/^\[OR\]$/,"a tag from Pew's codebook on this answer option. Kept exactly as the model saw it."],
+ [/^\(SELECT UP TO THREE\)$/,"respondents could tick up to three; each combination is its own answer option here."]];
+const codeNote=c=>{for(const [re,t] of CODES)if(re.test(c))return t;return null};
+const escH=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");
+const codeSpan=c=>{const n=codeNote(c);return n?`<span class="cd" title="${escH(n).replace(/"/g,"&quot;")}">${escH(c)}</span>`:escH(c)};
+const CRE=/\[[^\]]*\]|\(SELECT UP TO THREE\)/g;
+const marked=t=>{let o="",i=0,m;CRE.lastIndex=0;while((m=CRE.exec(t))){o+=escH(t.slice(i,m.index))+codeSpan(m[0]);i=m.index+m[0].length}return o+escH(t.slice(i))};
+const opt=o=>marked(o);
+const qtxt=q=>marked(q.text);
+const qgloss=q=>{const seen=[];for(const o of [q.text,...q.opts])for(const c of (o.match(CRE)||[]))if(codeNote(c)&&!seen.includes(c))seen.push(c);
+ return seen.length?`<div class="gloss"><b>Codes in this question</b>${seen.map(c=>`<div><span class="cd">${escH(c.length>34?c.slice(0,31)+"...":c)}</span><span>${escH(codeNote(c))}</span></div>`).join("")}</div>`:""};
+
 
 /* ---------- 01 pipeline ---------- */
 const STAGES=[
@@ -432,13 +453,13 @@ const ST={q:-1,f:"all",row:null,n:0,ft:0,gb:0,zs:0,mj:0};
 const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;");
 function promptText(c){
  const prof=c.prof.map(([k,v])=>`- ${k}: <mark>${esc(v)}</mark>`).join("\n");
- const o=c.opts.map((x,i)=>`${i+1}. ${esc(x)}`).join("\n");
+ const o=c.opts.map((x,i)=>`${i+1}. ${marked(x)}`).join("\n");
  const lab=c.opts.map((_,i)=>i+1).join("/");
- return `You are a survey respondent with the following demographic profile:\n\n${prof}\n\nAs this person, please answer the following survey question. Your answer should reflect the values and perspectives typical of someone with your background:\n\nQuestion: ${esc(c.q)}\n\nAnswer options:\n${o}\n\nYour answer:\n\n<span class="ins">This is anonymized survey-simulation research. Respond with exactly one character: one of ${lab}. No words, no punctuation, no explanation -- just that single digit.</span>`}
+ return `You are a survey respondent with the following demographic profile:\n\n${prof}\n\nAs this person, please answer the following survey question. Your answer should reflect the values and perspectives typical of someone with your background:\n\nQuestion: ${marked(c.q)}\n\nAnswer options:\n${o}\n\nYour answer:\n\n<span class="ins">This is anonymized survey-simulation research. Respond with exactly one character: one of ${lab}. No words, no punctuation, no explanation -- just that single digit.</span>`}
 const amax=a=>a.indexOf(Math.max(...a));
 function pick(){const pool=D.rows;for(let t=0;t<200000;t++){const r=pool[Math.floor(Math.random()*pool.length)];if(ST.q>=0&&r[1]!=ST.q)continue;const n=NO(r[1]),ok=amax(r.slice(3,3+n))==r[2];if(ST.f=="ok"&&!ok)continue;if(ST.f=="bad"&&ok)continue;return r}return pool[0]}
-function draw(){const r=pick();ST.row=r;if(ST.f=="all"){const c=toCase(r);ST.n++;for(const k in OFF)ST[k]+=amax(c.p[k])==c.truth?1:0}drawTrace()}
-function drawTally(){const pc=k=>ST.n?Math.round(ST[k]/ST.n*100)+"%":"-";$("tally").innerHTML=ST.n?`Unselected draws so far: <b>${ST.n}</b> &middot; fine-tuned right <b>${ST.ft}</b> (${pc("ft")}) &middot; gradient boosting <b>${ST.gb}</b> &middot; zero-shot <b>${ST.zs}</b> &middot; majority <b>${ST.mj}</b>`:"Draw a few respondents with &ldquo;All rows&rdquo; to build an unselected tally."}
+function draw(){const r=pick();ST.row=r;if(ST.f=="all"&&ST.q<0){const c=toCase(r);ST.n++;for(const k in OFF)ST[k]+=amax(c.p[k])==c.truth?1:0}drawTrace()}
+function drawTally(){const pc=k=>ST.n?Math.round(ST[k]/ST.n*100)+"%":"-";$("tally").innerHTML=ST.n?`Unselected draws so far: <b>${ST.n}</b> &middot; fine-tuned right <b>${ST.ft}</b> (${pc("ft")}) &middot; gradient boosting <b>${ST.gb}</b> &middot; zero-shot <b>${ST.zs}</b> &middot; majority <b>${ST.mj}</b>`:"Draw a few respondents with &ldquo;All rows&rdquo; and &ldquo;All 8 questions&rdquo; to build an unselected tally."}
 function why(c){const ft=amax(c.p.ft),conf=c.p.ft[ft]/10,ok=ft==c.truth;
  if(ok&&conf>=70)return `A confident, correct answer (${conf.toFixed(1)}%). Answers like this are rare: only 1,338 of 46,209 reach 70% confidence.`;
  if(ok)return `Correct, but with only ${conf.toFixed(1)}% on the top option. Most answers look like this: the model spreads its probability and is right a little more often than the majority guess.`;
@@ -448,10 +469,10 @@ function drawTrace(){
  const c=toCase(ST.row),ft=amax(c.p.ft),ok=ft==c.truth;
  $("tracebox").innerHTML=
  `<div class="tstep"><div class="lab"><span>1</span>Profile</div><div style="font-weight:600">Respondent ${c.resp} &middot; <span style="color:var(--mut);font-weight:500">${c.qname}</span></div><div class="chips">${c.prof.map(([k,v])=>`<span class="chip"><em>${k}</em>${v.replace(/ \(.*\)$/,"")}</span>`).join("")}</div></div>
-  <div class="tstep"><div class="lab"><span>2</span>Prompt</div><div class="prompt" tabindex="0" aria-label="Full prompt">${promptText(c)}</div></div>
+  <div class="tstep"><div class="lab"><span>2</span>Prompt</div><div class="prompt" tabindex="0" aria-label="Full prompt">${promptText(c)}</div>${qgloss({text:c.q,opts:c.opts})}</div>
   <div class="tstep"><div class="lab"><span>3</span>Readout</div><div class="bars">${MS.map(([k,l])=>{const t=amax(c.p[k]);return `<div class="bgroup"><div class="bh"><i style="background:${C(k)}"></i>${l}</div>${c.p[k].map((v,i)=>`<div class="brow ${i==t?"top":""} ${i==c.truth?"truth":""}"><span class="d">${i+1}</span><span class="tk"><b data-w="${v/10}" style="width:0;background:${C(k)};opacity:${i==t?1:.45}"></b></span><span class="v">${(v/10).toFixed(1)}%</span></div>`).join("")}</div>`}).join("")}</div></div>
-  <div class="tstep"><div class="lab"><span>4</span>Score</div><div class="opts">${c.opts.map((o,i)=>`<div class="${i==c.truth?"truth":""}"><span>${i+1}</span>${o}${i==c.truth?" &larr; real answer":""}</div>`).join("")}</div>
-   <div class="verdict ${ok?"ok":"bad"}"><b>Fine-tuned: ${ok?"correct":"wrong"}</b><small>Picked &ldquo;${c.opts[ft]}&rdquo; at ${(c.p.ft[ft]/10).toFixed(1)}%</small></div>
+  <div class="tstep"><div class="lab"><span>4</span>Score</div><div class="opts">${c.opts.map((o,i)=>`<div class="${i==c.truth?"truth":""}"><span>${i+1}</span><span>${marked(o)}${i==c.truth?" &larr; real answer":""}</span></div>`).join("")}</div>
+   <div class="verdict ${ok?"ok":"bad"}"><b>Fine-tuned: ${ok?"correct":"wrong"}</b><small>Picked &ldquo;${marked(c.opts[ft])}&rdquo; at ${(c.p.ft[ft]/10).toFixed(1)}%</small></div>
    <div class="scorelist">${MS.map(([k,l])=>{const t=amax(c.p[k]);return `<div><span>${l.replace(" Qwen2.5-7B","")}</span><span class="${t==c.truth?"y":"n"}">${t==c.truth?"correct":"wrong"}</span></div>`}).join("")}</div>
    <p style="font-size:13.5px;color:var(--ink2)">${why(c)}</p></div>`;
  drawTally();
@@ -463,7 +484,7 @@ document.querySelectorAll("#segF button").forEach(b=>b.onclick=()=>{ST.f=b.datas
 $("draw").onclick=draw;
 draw();
 /* hero card: one random row */
-(function(){const r=pick(),c=toCase(r),ft=amax(c.p.ft),P=c.prof;$("qcard").innerHTML=`<div class="h"><span>Pew Religion in India &middot; random row</span><span>resp. ${c.resp}</span></div><div class="q">${c.qname}</div>${c.opts.map((o,i)=>`<div class="o ${i==ft?"pick":""}"><span class="d">${i+1}</span>${o.replace(" [OR]","")}<span class="p">${(c.p.ft[i]/10).toFixed(1)}%</span></div>`).join("")}<div class="f">${P[0][1]}, ${P[1][1]}, ${P[2][1].toLowerCase()}, ${P[6][1].toLowerCase()} ${P[7][1]}. Fine-tuned model ${ft==c.truth?"is right":"is wrong"}: the real answer was &ldquo;${c.opts[c.truth].replace(" [OR]","")}&rdquo;. Reload for another.</div>`})();
+(function(){const r=pick(),c=toCase(r),ft=amax(c.p.ft),P=c.prof;$("qcard").innerHTML=`<div class="h"><span>Pew Religion in India &middot; random row</span><span>resp. ${c.resp}</span></div><div class="q">${c.qname}</div>${c.opts.map((o,i)=>`<div class="o ${i==ft?"pick":""}"><span class="d">${i+1}</span><span>${o.replace(" [OR]","")}</span><span class="p">${(c.p.ft[i]/10).toFixed(1)}%</span></div>`).join("")}<div class="f">${P[0][1]}, ${P[1][1]}, ${P[2][1].toLowerCase()}, ${P[6][1].toLowerCase()} ${P[7][1]}. Fine-tuned model ${ft==c.truth?"is right":"is wrong"}: the real answer was &ldquo;${c.opts[c.truth].replace(" [OR]","")}&rdquo;. Reload for another.</div>`})();
 
 /* ---------- 03 data ---------- */
 function funnel(id,rows,max){$(id).innerHTML=rows.map(([l,v,lab])=>{const w=Math.max(v/max*100,8);return `<div><div class="fb ${w<30?"light":""}"><b style="width:${w}%"></b><span>${lab}</span></div><span class="num" style="font-size:13px;color:var(--mut)">${l}</span></div>`}).join("")}
