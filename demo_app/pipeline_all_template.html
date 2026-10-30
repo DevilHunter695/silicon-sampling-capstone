@@ -1,0 +1,546 @@
+<title>Silicon Sampling Full Data</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one long field report. Sticky section bar, a clickable pipeline map as the centrepiece, then a real respondent traced end to end, results, and the project's history. */
+:root{
+  --ink:#0f1a33; --ink2:#3d4a66; --mut:#6b7690;
+  --bg:#f5f6fa; --paper:#ffffff; --wash:#eceff6; --line:#d9deea; --line2:#c4cbdc;
+  --navy:#0f2350; --navy-ink:#ffffff; --saffron:#e9a21b; --saffron-ink:#5a3a00;
+  --ft:#2f5bd3; --gb:#c98a0b; --zs:#c2410c; --mj:#8a93a8; --tr:#1f8a5b;
+  --ok:#1f8a5b; --okbg:#e5f4ec; --bad:#b4321f; --badbg:#fbe9e6;
+  --display:"Newsreader", "Iowan Old Style", Georgia, serif;
+  --sans:"IBM Plex Sans", -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  --shadow:0 1px 2px rgba(15,26,51,.06), 0 8px 24px -12px rgba(15,26,51,.18);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --ink:#e7ebf5; --ink2:#b6bfd3; --mut:#8a94ad;
+  --bg:#0b1120; --paper:#121a2e; --wash:#18223a; --line:#26314d; --line2:#34405f;
+  --navy:#1b3366; --navy-ink:#ffffff; --saffron:#f2b440; --saffron-ink:#2a1a00;
+  --ft:#6e93ff; --gb:#e3a832; --zs:#f07a46; --mj:#8792ab; --tr:#3fbf86;
+  --ok:#3fbf86; --okbg:#12322a; --bad:#f07a68; --badbg:#3a1a17;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 10px 30px -12px rgba(0,0,0,.6);
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --ink:#e7ebf5; --ink2:#b6bfd3; --mut:#8a94ad;
+  --bg:#0b1120; --paper:#121a2e; --wash:#18223a; --line:#26314d; --line2:#34405f;
+  --navy:#1b3366; --navy-ink:#ffffff; --saffron:#f2b440; --saffron-ink:#2a1a00;
+  --ft:#6e93ff; --gb:#e3a832; --zs:#f07a46; --mj:#8792ab; --tr:#3fbf86;
+  --ok:#3fbf86; --okbg:#12322a; --bad:#f07a68; --badbg:#3a1a17;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 10px 30px -12px rgba(0,0,0,.6);
+  color-scheme:dark}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:72px}
+body{background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+h1,h2,h3{font-family:var(--display);font-weight:500;letter-spacing:-.01em;text-wrap:balance;margin:0}
+p{margin:0}
+.mono{font-family:var(--mono)}
+.num{font-variant-numeric:tabular-nums}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--saffron);outline-offset:2px;border-radius:6px}
+
+/* top bar */
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top, 0px);z-index:30;background:var(--navy)}
+.bar{position:sticky;top:env(safe-area-inset-top, 0px);z-index:20;background:var(--navy);color:var(--navy-ink)}
+.bar .wrap{display:flex;align-items:center;gap:20px;height:56px}
+.brand{font-weight:600;font-size:14.5px;white-space:nowrap;display:flex;align-items:center;gap:10px}
+.brand i{font-style:normal;font-family:var(--mono);font-size:12px;color:var(--saffron);border:1px solid rgba(255,255,255,.25);border-radius:5px;padding:1px 6px}
+.nav{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;flex:1;min-width:0}
+.nav::-webkit-scrollbar{display:none}
+.nav a{color:rgba(255,255,255,.72);text-decoration:none;font-size:13.5px;padding:6px 10px;border-radius:6px;white-space:nowrap}
+.nav a:hover{color:#fff;background:rgba(255,255,255,.08)}
+.nav a.on{color:#fff;background:rgba(255,255,255,.12)}
+.theme{background:none;border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:8px;width:34px;height:34px;display:grid;place-items:center;cursor:pointer;flex:none}
+.theme svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8}
+
+/* hero */
+.hero{background:var(--navy);color:var(--navy-ink);padding-block:56px 64px;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.07) 1px,transparent 1px);background-size:22px 22px;pointer-events:none}
+.hero .wrap{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:48px;align-items:center}
+.eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:var(--saffron)}
+.hero h1{font-size:clamp(34px,5vw,56px);line-height:1.05;margin:14px 0 18px;color:#fff}
+.hero h1 em{font-style:italic;color:var(--saffron)}
+.hero .lead{font-size:17.5px;color:rgba(255,255,255,.82);max-width:58ch}
+.hero .meta{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:22px;font-size:13.5px;color:rgba(255,255,255,.7)}
+.hero .meta b{color:#fff;font-weight:600}
+/* hero: the survey card as a visual */
+.qcard{background:#fff;color:#0f1a33;border-radius:14px;padding:20px 22px;box-shadow:0 30px 60px -30px rgba(0,0,0,.6);font-size:14px;transform:rotate(-1.2deg)}
+.qcard .h{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11.5px;color:#6b7690;border-bottom:1px dashed #c4cbdc;padding-bottom:8px;margin-bottom:12px}
+.qcard .q{font-family:var(--display);font-size:19px;line-height:1.3;margin-bottom:12px}
+.qcard .o{display:flex;align-items:center;gap:10px;padding:6px 0;border-top:1px solid #eceff6}
+.qcard .o span.d{font-family:var(--mono);font-size:12px;width:22px;height:22px;border:1.5px solid #c4cbdc;border-radius:50%;display:grid;place-items:center;flex:none}
+.qcard .o.pick span.d{background:#0f2350;border-color:#0f2350;color:#fff}
+.qcard .o .p{margin-left:auto;font-family:var(--mono);font-size:12px;color:#6b7690}
+.qcard .o.pick .p{color:#1f8a5b;font-weight:500}
+.qcard .f{margin-top:12px;font-size:12.5px;color:#6b7690}
+
+.alld{margin-top:20px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.06);border-radius:10px;padding:10px 14px;font-size:14px;color:rgba(255,255,255,.85);max-width:60ch}
+.alld b{color:var(--saffron)}
+.ctrl{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px;margin-bottom:14px}
+.ctrl .seg{margin:0}
+.fld{display:grid;gap:4px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);font-weight:600}
+.fld select{font:15px var(--sans);text-transform:none;letter-spacing:0;color:var(--ink);background:var(--paper);border:1px solid var(--line2);border-radius:9px;padding:8px 10px;min-width:240px;max-width:100%}
+.tally{font-size:14px;color:var(--ink2);margin-bottom:14px;min-height:22px}
+.tally b{color:var(--ink);font-variant-numeric:tabular-nums}
+/* sections */
+section{padding-block:72px 8px}
+.sh{display:grid;gap:10px;margin-bottom:28px;max-width:72ch}
+.sh .k{font-family:var(--mono);font-size:12.5px;color:var(--mut)}
+.sh h2{font-size:clamp(28px,3.4vw,38px);line-height:1.12}
+.sh p{color:var(--ink2);font-size:16.5px}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
+
+/* pipeline map */
+.map{overflow-x:auto;padding-bottom:6px}
+.stages{display:grid;grid-template-columns:repeat(7,minmax(128px,1fr));gap:0;min-width:900px;position:relative}
+.stg{position:relative;background:none;border:0;padding:0 6px;cursor:pointer;text-align:left;display:grid;gap:10px;align-content:start}
+.stg .dot{height:44px;display:flex;align-items:center}
+.stg .dot::before{content:"";position:absolute;left:0;right:0;top:21px;height:2px;background:var(--line2)}
+.stg:first-child .dot::before{left:50%}.stg:last-child .dot::before{right:50%}
+.stg .n{position:relative;z-index:1;margin:0 auto;width:44px;height:44px;border-radius:50%;background:var(--paper);border:2px solid var(--line2);display:grid;place-items:center;font-family:var(--mono);font-size:14px;font-weight:500;color:var(--ink2);transition:background .2s,border-color .2s,color .2s,transform .2s}
+.stg .t{font-weight:600;font-size:14.5px;text-align:center;line-height:1.25}
+.stg .s{font-size:12.5px;color:var(--mut);text-align:center;line-height:1.35}
+.stg:hover .n{border-color:var(--ft);color:var(--ft)}
+.stg[aria-selected="true"] .n{background:var(--navy);border-color:var(--navy);color:#fff;transform:scale(1.08)}
+:root[data-theme="dark"] .stg[aria-selected="true"] .n{background:var(--saffron);border-color:var(--saffron);color:var(--saffron-ink)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .stg[aria-selected="true"] .n{background:var(--saffron);border-color:var(--saffron);color:var(--saffron-ink)}}
+.stg[aria-selected="true"] .t{color:var(--ink)}
+.detail{margin-top:24px;padding:28px 30px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:32px}
+.detail h3{font-size:26px;margin-bottom:10px}
+.detail .body{color:var(--ink2);display:grid;gap:12px}
+.detail .body b{color:var(--ink);font-weight:600}
+.facts{display:grid;gap:0;align-content:start;border-top:1px solid var(--line)}
+.facts div{display:flex;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid var(--line);font-size:14.5px}
+.facts dt,.facts span:first-child{color:var(--mut)}
+.facts span:last-child{font-weight:600;text-align:right;font-variant-numeric:tabular-nums}
+.stepnav{display:flex;gap:8px;margin-top:6px}
+.btn{border:1px solid var(--line2);background:var(--paper);border-radius:9px;padding:8px 14px;font-size:14px;font-weight:500;cursor:pointer}
+.btn:hover{border-color:var(--ink2)}
+.btn.pri{background:var(--navy);border-color:var(--navy);color:#fff}
+.code{font-family:var(--mono);font-size:12.5px;background:var(--wash);border:1px solid var(--line);border-radius:10px;padding:12px 14px;white-space:pre-wrap;color:var(--ink);line-height:1.55}
+
+/* trace */
+.cases{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.case{border:1px solid var(--line2);background:var(--paper);border-radius:999px;padding:8px 16px;font-size:14px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:8px}
+.case i{width:9px;height:9px;border-radius:50%;background:var(--ok)}
+.case.bad i{background:var(--bad)}
+.case[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.trace{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0}
+.tstep{padding:22px 22px 24px;border-right:1px solid var(--line);display:grid;gap:12px;align-content:start;min-width:0}
+.tstep:last-child{border-right:0}
+.tstep .lab{display:flex;align-items:center;gap:10px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;color:var(--mut)}
+.tstep .lab span{font-family:var(--mono);letter-spacing:0;width:24px;height:24px;border-radius:50%;background:var(--wash);display:grid;place-items:center;color:var(--ink);font-size:12px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:12.5px;background:var(--wash);border:1px solid var(--line);border-radius:7px;padding:3px 8px;line-height:1.35}
+.chip em{font-style:normal;color:var(--mut);margin-right:4px}
+.prompt{font-family:var(--mono);font-size:11.5px;line-height:1.55;background:var(--wash);border:1px solid var(--line);border-radius:10px;padding:12px;max-height:330px;overflow:auto;white-space:pre-wrap;color:var(--ink2)}
+.prompt mark{background:none;color:var(--ft);font-weight:500}
+.prompt .ins{color:var(--mut)}
+.bars{display:grid;gap:14px}
+.bgroup .bh{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;margin-bottom:6px}
+.bgroup .bh i{width:10px;height:10px;border-radius:3px}
+.brow{display:grid;grid-template-columns:20px minmax(0,1fr) 42px;gap:8px;align-items:center;font-size:12.5px;margin:3px 0}
+.brow .d{font-family:var(--mono);color:var(--mut);text-align:center}
+.brow .tk{height:10px;background:var(--wash);border-radius:3px;overflow:hidden}
+.brow .tk b{display:block;height:100%;border-radius:3px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.brow .v{font-family:var(--mono);text-align:right;color:var(--ink2)}
+.brow.top .v{color:var(--ink);font-weight:500}
+.brow.truth .d{color:var(--tr);font-weight:600}
+.opts{display:grid;gap:4px;font-size:13px}
+.opts div{display:grid;grid-template-columns:20px 1fr;gap:6px}
+.opts div span{font-family:var(--mono);color:var(--mut)}
+.opts div.truth{color:var(--tr);font-weight:600}
+.opts div.truth span{color:var(--tr)}
+.verdict{border-radius:10px;padding:12px 14px;font-size:14px;display:grid;gap:3px}
+.verdict.ok{background:var(--okbg);color:var(--ok)}
+.verdict.bad{background:var(--badbg);color:var(--bad)}
+.verdict b{font-weight:600}
+.verdict small{color:var(--ink2);font-size:12.5px}
+.scorelist{display:grid;gap:6px;font-size:13.5px}
+.scorelist div{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 10px;border-radius:8px;background:var(--wash)}
+.scorelist .y{color:var(--ok);font-weight:600}.scorelist .n{color:var(--bad);font-weight:600}
+.note{font-size:13.5px;color:var(--mut);margin-top:14px;max-width:80ch}
+
+/* data + models */
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.ds{padding:24px 26px;display:grid;gap:14px;align-content:start}
+.ds .tag{font-family:var(--mono);font-size:12px;color:var(--mut)}
+.ds h3{font-size:24px}
+.ds p{color:var(--ink2);font-size:15px}
+.funnel{display:grid;gap:6px}
+.funnel div{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;font-size:13.5px}
+.funnel .fb{height:26px;border-radius:6px;background:var(--wash);position:relative;overflow:hidden}
+.funnel .fb b{position:absolute;inset:0 auto 0 0;background:var(--navy);opacity:.9;border-radius:6px}
+.funnel .fb span{position:relative;z-index:1;padding:0 10px;line-height:26px;color:#fff;font-weight:500;white-space:nowrap;font-size:12.5px;mix-blend-mode:normal}
+.funnel .fb.light span{color:var(--ink)}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14.5px;min-width:640px}
+th{text-align:left;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);font-weight:600;padding:12px 14px;border-bottom:1px solid var(--line2)}
+td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td .sw{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:8px;vertical-align:baseline}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
+tr.hl td{background:color-mix(in srgb, var(--ft) 7%, transparent)}
+
+/* results */
+.res{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}
+.chartbox{padding:24px 24px 18px}
+.chartbox h3{font-size:21px;margin-bottom:4px}
+.chartbox .cap{font-size:13.5px;color:var(--mut);margin-bottom:12px}
+svg.ch{width:100%;height:auto;display:block;overflow:visible}
+svg.ch text{fill:var(--mut);font:12px var(--sans)}
+svg.ch .lbl{fill:var(--ink);font-weight:600;font-size:13px}
+svg.ch .val{fill:var(--ink);font:500 12.5px var(--mono)}
+svg.ch .grid{stroke:var(--line);stroke-width:1}
+svg.ch .axis{stroke:var(--line2);stroke-width:1}
+.seg{display:inline-flex;border:1px solid var(--line2);border-radius:9px;padding:2px;gap:2px;margin-bottom:12px;flex-wrap:wrap}
+.seg button{border:0;background:none;padding:5px 12px;border-radius:7px;font-size:13px;cursor:pointer;color:var(--ink2)}
+.seg button[aria-pressed="true"]{background:var(--wash);color:var(--ink);font-weight:600}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;color:var(--ink2);margin-bottom:8px}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend i{width:10px;height:10px;border-radius:3px}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;margin-bottom:18px}
+.kpi{padding:20px 22px;border-right:1px solid var(--line);display:grid;gap:4px}
+.kpi:last-child{border-right:0}
+.kpi b{font-family:var(--display);font-weight:500;font-size:40px;line-height:1;font-variant-numeric:tabular-nums}
+.kpi span{font-size:13.5px;color:var(--ink2)}
+
+/* works / doesn't */
+.wd{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.wd .col{padding:24px 26px;display:grid;gap:14px;align-content:start}
+.wd h3{font-size:23px;display:flex;align-items:center;gap:10px}
+.wd h3 i{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;flex:none}
+.wd h3 i svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.4}
+.wd .good h3 i{background:var(--okbg);color:var(--ok)}
+.wd .bad h3 i{background:var(--badbg);color:var(--bad)}
+.pt{display:grid;gap:3px;padding-top:12px;border-top:1px solid var(--line)}
+.pt b{font-weight:600}
+.pt p{font-size:14.5px;color:var(--ink2)}
+.pt .fig{font-family:var(--mono);font-size:12.5px;color:var(--mut)}
+
+/* journey */
+.tl{display:grid;gap:0;position:relative}
+.ph{display:grid;grid-template-columns:150px minmax(0,1fr);gap:28px;padding:22px 0;border-top:1px solid var(--line)}
+.ph:first-child{border-top:0}
+.ph .when{font-family:var(--mono);font-size:12.5px;color:var(--mut)}
+.ph .when b{display:block;font-family:var(--display);font-size:22px;color:var(--ink);font-weight:500;margin-top:2px}
+.ph h3{font-size:21px;margin-bottom:6px}
+.ph p{color:var(--ink2);font-size:15px;max-width:76ch}
+.ph ul{margin:8px 0 0;padding-left:18px;color:var(--ink2);font-size:14.5px;display:grid;gap:4px;max-width:76ch}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;border-radius:999px;padding:2px 10px;margin:8px 6px 0 0}
+.pill.fix{background:var(--badbg);color:var(--bad)}
+.pill.win{background:var(--okbg);color:var(--ok)}
+.pill.neu{background:var(--wash);color:var(--ink2)}
+
+footer{margin-top:72px;border-top:1px solid var(--line);padding-block:28px 40px;color:var(--mut);font-size:13.5px}
+footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px}
+
+@media (max-width:900px){
+  .hero .wrap,.detail,.two,.res,.wd{grid-template-columns:minmax(0,1fr)}
+  .trace{grid-template-columns:minmax(0,1fr)}
+  .tstep{border-right:0;border-bottom:1px solid var(--line)}
+  .tstep:last-child{border-bottom:0}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kpi:nth-child(2){border-right:0}
+  .kpi:nth-child(-n+2){border-bottom:1px solid var(--line)}
+  .ph{grid-template-columns:minmax(0,1fr);gap:8px}
+  .qcard{transform:none}
+}
+@media (max-width:560px){.brand span{display:none}.detail{padding:22px 18px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+
+<header class="bar"><div class="wrap">
+  <div class="brand"><i>G55</i><span>Silicon Sampling</span></div>
+  <nav class="nav" id="nav">
+    <a href="#pipeline">Pipeline</a><a href="#trace">One respondent</a><a href="#data">Data &amp; models</a><a href="#results">Results</a><a href="#verdict">Works / fails</a><a href="#journey">Journey</a>
+  </nav>
+  <button class="theme" id="theme" aria-label="Switch light or dark theme" title="Light / dark"><svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg></button>
+</div></header>
+
+<div class="hero"><div class="wrap">
+  <div>
+    <div class="eyebrow">Capstone &middot; Group 55 &middot; MPSTME, NMIMS Mumbai</div>
+    <h1>Can a language model <em>answer like</em> an Indian survey respondent?</h1>
+    <p class="lead">We gave Qwen2.5-7B a person's demographic profile, asked it real Pew survey questions, and scored its answers against what 6,000 real respondents said, and against simple classifiers trained on the same rows.</p>
+    <div class="alld"><b>Full data edition.</b> Nothing on this page is selected: every respondent is drawn at random and every number is computed in your browser from all 46,209 test answers.</div>
+    <div class="meta"><span><b>46,209</b> test answers scored</span><span><b>5</b> methods, identical rows</span><span>Accepted at <b>Hinweis AIDE-2026</b>, paper 591</span></div>
+  </div>
+  <div class="qcard" id="qcard" aria-label="A random survey answer with the fine-tuned model's probabilities"></div>
+</div></div>
+
+<main>
+<section id="pipeline"><div class="wrap">
+  <div class="sh"><div class="k">01 / the pipeline</div><h2>Seven stages from a survey file to a verdict</h2><p>Every method goes through the same stages and is scored on the same respondent-question rows. Click a stage, or use the arrow keys.</p></div>
+  <div class="map"><div class="stages" id="stages" role="tablist" aria-label="Pipeline stages"></div></div>
+  <div class="panel detail" id="detail" role="tabpanel"></div>
+</div></section>
+
+<section id="trace"><div class="wrap">
+  <div class="sh"><div class="k">02 / any respondent, end to end</div><h2>Draw a random person from the test fold</h2><p>Each draw picks one of the 46,209 test answers at random. Right and wrong answers come up as often as they really do.</p></div>
+  <div class="ctrl">
+    <label class="fld"><span>Question</span><select id="selQ"></select></label>
+    <div class="seg" id="segF" role="group" aria-label="Which rows to draw"><button data-f="all" aria-pressed="true">All rows</button><button data-f="ok" aria-pressed="false">Only correct</button><button data-f="bad" aria-pressed="false">Only wrong</button></div>
+    <button class="btn pri" id="draw">Draw another respondent</button>
+  </div>
+  <div class="tally" id="tally"></div>
+  <div class="panel trace" id="tracebox"></div>
+  <p class="note">&ldquo;Only correct&rdquo; and &ldquo;Only wrong&rdquo; are filters you choose; the tally above counts only draws made with &ldquo;All rows&rdquo;, so it stays an unselected sample.</p>
+</div></section>
+
+<section id="data"><div class="wrap">
+  <div class="sh"><div class="k">03 / data and models</div><h2>Two surveys, five predictors</h2><p>We started on the World Values Survey, then moved to Pew for its size. Every predictor reads the same nine profile attributes.</p></div>
+  <div class="two">
+    <div class="panel ds">
+      <div class="tag">Main study &middot; face-to-face, 2019-20</div>
+      <h3>Pew Religion in India</h3>
+      <p>29,999 adults across India. 73 items screened, 8 used for training and scoring, 8 more held out to test transfer.</p>
+      <div class="funnel" id="fpew"></div>
+    </div>
+    <div class="panel ds">
+      <div class="tag">Phase 1 replication &middot; 2023</div>
+      <h3>World Values Survey, wave 7 (India)</h3>
+      <p>1,692 adults. 373 candidate items screened down to 144, with 15 used for the zero-shot replication across free models.</p>
+      <div class="funnel" id="fwvs"></div>
+    </div>
+  </div>
+  <div class="panel tbl" style="margin-top:18px">
+    <table>
+      <thead><tr><th>Predictor</th><th>What it is</th><th>How it was run</th><th class="r">Pew accuracy</th></tr></thead>
+      <tbody id="models"></tbody>
+    </table>
+  </div>
+</div></section>
+
+<section id="results"><div class="wrap">
+  <div class="sh"><div class="k">04 / results on Pew fold 0</div><h2>Fine-tuning closes most of the gap, classifiers still lead</h2><p>Every chart below is computed live from the 46,209 rows embedded in this page. Logistic regression is taken from the paper because its row-level outputs are not embedded.</p></div>
+  <div class="panel kpis" id="kpis">
+    <div class="kpi"><b class="num">38.0%</b><span>fine-tuned accuracy, against 30.4% for always guessing the most common answer</span></div>
+    <div class="kpi"><b class="num">79%</b><span>of the gap from the majority guess to gradient boosting closed by fine-tuning</span></div>
+    <div class="kpi"><b class="num">0.009</b><span>expected calibration error: probabilities match how often it is right</span></div>
+    <div class="kpi"><b class="num">87.3%</b><span>accuracy on the 1,338 answers where it is at least 70% confident</span></div>
+  </div>
+  <div class="res">
+    <div class="panel chartbox">
+      <h3>Overall accuracy</h3><p class="cap">Computed from all 46,209 rows. Dashed line: majority guess. * from the paper.</p>
+      <svg class="ch" id="chAcc" viewBox="0 0 520 250" role="img" aria-label="Accuracy by method"></svg>
+    </div>
+    <div class="panel chartbox">
+      <h3>Calibration</h3><p class="cap">Fine-tuned model. Each dot is a confidence band; on the diagonal means honest probabilities. Dot size shows how many answers.</p>
+      <svg class="ch" id="chCal" viewBox="0 0 520 300" role="img" aria-label="Calibration plot"></svg>
+    </div>
+  </div>
+  <div class="panel chartbox" style="margin-top:18px">
+    <h3>Every question, every method</h3><p class="cap">Sorted by the fine-tuned model's lift over the majority guess. The gap between the blue and grey marks is what the model adds.</p>
+    <div class="legend" id="lgItems"></div>
+    <div style="overflow-x:auto"><svg class="ch" id="chItems" viewBox="0 0 980 420" role="img" aria-label="Accuracy per question" style="min-width:680px"></svg></div>
+  </div>
+</div></section>
+
+<section id="verdict"><div class="wrap">
+  <div class="sh"><div class="k">05 / the verdict</div><h2>What works, and what does not</h2><p>Both lists come from the same run. We show the failures on purpose.</p></div>
+  <div class="wd">
+    <div class="panel col good">
+      <h3><i><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></svg></i>Works</h3>
+      <div class="pt"><b>Fine-tuning fixes a broken zero-shot model</b><p>From 16.1% to 38.0% accuracy, with negative log-likelihood falling from 4.26 to 1.48.</p><span class="fig">zero-shot 16.1% &rarr; fine-tuned 38.0%</span></div>
+      <div class="pt"><b>Its probabilities can be trusted</b><p>Calibration error of 0.009, in line with the classifiers. When it is at least 90% sure, it is right 97.8% of the time.</p><span class="fig">ECE 0.009 &middot; 846 answers at 90%+ confidence</span></div>
+      <div class="pt"><b>Questions the profile can answer</b><p>Number of children: 56.4% against 31.6% for the majority guess. Unmarried respondents are almost always predicted correctly.</p><span class="fig">unmarried: 96.6% correct, 98.8% predicted with 70%+ confidence</span></div>
+      <div class="pt"><b>It gets group differences in the right direction</b><p>Predicted gaps between groups correlate 0.58 with the real gaps on the 200-respondent subset where zero-shot reaches only 0.22, and 0.82 on the full fold.</p><span class="fig">directional r: zero-shot 0.22 &middot; fine-tuned 0.58 (subset), 0.82 (full)</span></div>
+    </div>
+    <div class="panel col bad">
+      <h3><i><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></i>Does not work</h3>
+      <div class="pt"><b>Prompting alone</b><p>The zero-shot model reacts strongly to the profile but in the wrong direction. Removing the profile raises its accuracy by 3.6 points.</p><span class="fig">profile share of variance: model 29%, real answers 4%</span></div>
+      <div class="pt"><b>Beating a simple classifier</b><p>Gradient boosting on the same rows reaches 40.0% and leads on every question, by 1.2 to 2.7 points, in under a minute of CPU time.</p><span class="fig">GBM 40.0% &middot; fine-tuned 38.0%</span></div>
+      <div class="pt"><b>Opinion questions</b><p>On politicians in religion the model is barely above the majority guess. Opinions are hard to read from nine demographics.</p><span class="fig">36.7% vs 35.4% majority</span></div>
+      <div class="pt"><b>Transfer to unseen questions</b><p>No detectable gain on 8 held-out items, using an approximate port of the adapter. Too small to rule transfer out.</p><span class="fig">28.9% vs 28.5% &middot; p = 0.18</span></div>
+    </div>
+  </div>
+</div></section>
+
+<section id="journey"><div class="wrap">
+  <div class="sh"><div class="k">06 / how we got here</div><h2>The project, in five phases</h2><p>Including the dead ends and the bugs that changed results.</p></div>
+  <div class="panel" style="padding:6px 28px"><div class="tl" id="tl"></div></div>
+</div></section>
+</main>
+
+<footer><div class="wrap">
+  <span>Group 55 &middot; Bhanuj Bhalla, Ishaan Bansal, Yash Bhende, Krishank Ayyella &middot; Mentor: Ms. Khushbu Chauhan</span>
+  <span class="mono">github.com/DevilHunter695/silicon-sampling-capstone</span>
+</div></footer>
+
+<script>
+const D=__DATA__;
+const $=id=>document.getElementById(id);
+const C=k=>`var(--${k})`;
+
+/* ---------- 01 pipeline ---------- */
+const STAGES=[
+ {t:"Survey data",s:"Pew + WVS-7",h:"Start from real respondents",
+  b:`<p>Each row is one person and their answer to one question. We use <b>Pew Religion in India</b> (29,999 adults) as the main study, and <b>WVS-7 India</b> (1,692 adults) for the first zero-shot replication.</p><p>Items were screened from the official codebooks: questions with clean, ordered answer options and enough answers were kept.</p>`,
+  f:[["Pew respondents","29,999"],["Pew items screened","73"],["Trained and scored","8"],["Held out for transfer","8"],["WVS-7 items used","15 of 144"]]},
+ {t:"Folds",s:"split by person",h:"Split by respondent, never by row",
+  b:`<p>All answers from one person go to the same side of the split, so the model is always tested on people it has never seen.</p><p>We built five folds and report <b>fold 0</b>. Classifiers are trained and scored on exactly the same split.</p>`,
+  f:[["Folds","5, respondent-level"],["Train respondents","23,999"],["Test respondents","6,000"],["Test answers","46,209"],["Training examples","184,853"]]},
+ {t:"Profile",s:"9 attributes",h:"Turn a row into a profile",
+  b:`<p>Nine demographics are read from the codebook with their official labels: sex, age, marital status, education, income, religion, caste, urban or rural, and region.</p><p>Checking labels mattered. On WVS, region labels were wrong on every code until we matched them against the official annex, and fixing it moved subgroup gaps by several points.</p>`,
+  f:[["Attributes (Pew)","9"],["Attributes (WVS)","14"],["Source of labels","official codebook"],["Bug found","WVS region codes"]]},
+ {t:"Prompt",s:"template P2",h:"Write the profile into a prompt",
+  b:`<p>The profile, the question and the numbered options go into one fixed template. A control prompt (P0) drops the profile so we can measure what the profile itself contributes.</p><div class="code">You are a survey respondent with the following demographic profile:
+- Sex: Male
+- Age: 18-25 ...
+Question: How many children have you had? ...
+Answer options: 1. No Children  2. One Child ...
+Your answer:</div><p>The closing instruction asks for exactly one digit. An earlier wording caused 13% refusals; the final one brought that to 0%.</p>`,
+  f:[["With profile","P2"],["Without profile","P0"],["Refusals, first wording","13%"],["Refusals, final wording","0%"]]},
+ {t:"Predictors",s:"LLMs + classifiers",h:"Five ways to answer the same row",
+  b:`<p><b>Zero-shot Qwen2.5-7B</b> reads the prompt as is. <b>Fine-tuned Qwen2.5-7B</b> is the same model after QLoRA training on the 23,999 training respondents. <b>Majority</b>, <b>logistic regression</b> and <b>gradient boosting</b> learn from the same nine attributes.</p><p>QLoRA keeps the 7B model frozen in 4-bit and trains small adapter matrices on the attention layers, which made a single university lab GPU enough.</p>`,
+  f:[["Base model","Qwen2.5-7B-Instruct"],["Adapter","LoRA rank 16, alpha 32"],["Trainable parameters","10.1M"],["Training time","6.6 h, 5,777 steps"],["Also tried","gpt-oss-120b, Gemini"]]},
+ {t:"Readout",s:"next-digit probabilities",h:"Read probabilities, not text",
+  b:`<p>Instead of parsing the model's reply, we read its probability for each answer digit (1, 2, 3, ...) at the next token and normalise them. The prediction is the most likely digit.</p><p>This gives a full distribution for every answer, so the model can be scored on calibration as well as accuracy. It also exposed a decoding artefact in an early run that had looked like a collapse on one item.</p>`,
+  f:[["Output","probability per option"],["Prediction","most likely option"],["Scoring hardware","2 x Kaggle T4, fp16"],["Time per answer","about 0.2 s"]]},
+ {t:"Evaluation",s:"beyond accuracy",h:"Score more than accuracy",
+  b:`<p>Accuracy alone hides a lot, so every method also gets: negative log-likelihood, calibration error, how much of the prediction depends on the profile, whether group differences point the right way, distribution distance (JSD), and subgroup gaps with Holm correction.</p><p>Confidence intervals come from a respondent-clustered bootstrap.</p>`,
+  f:[["Accuracy, NLL, ECE","all methods"],["Directional validity","r and slope"],["Subgroup gaps","Holm-corrected"],["Uncertainty","clustered bootstrap"]]},
+];
+let cur=0;
+function drawStages(){
+ $("stages").innerHTML=STAGES.map((s,i)=>`<button class="stg" role="tab" id="st${i}" aria-selected="${i==cur}" aria-controls="detail" tabindex="${i==cur?0:-1}"><span class="dot"><span class="n">${i+1}</span></span><span class="t">${s.t}</span><span class="s">${s.s}</span></button>`).join("");
+ const s=STAGES[cur];
+ $("detail").innerHTML=`<div><div class="sh" style="margin:0 0 6px"><div class="k">stage ${cur+1} of ${STAGES.length}</div></div><h3>${s.h}</h3><div class="body">${s.b}</div>
+  <div class="stepnav"><button class="btn" id="prev" ${cur==0?"disabled":""}>&larr; Previous</button><button class="btn pri" id="next" ${cur==STAGES.length-1?"disabled":""}>Next stage &rarr;</button></div></div>
+  <dl class="facts">${s.f.map(([a,b])=>`<div><span>${a}</span><span>${b}</span></div>`).join("")}</dl>`;
+ $("prev").onclick=()=>go(cur-1);$("next").onclick=()=>go(cur+1);
+ document.querySelectorAll(".stg").forEach((b,i)=>b.onclick=()=>go(i));
+}
+function go(i,focus){cur=Math.max(0,Math.min(STAGES.length-1,i));drawStages();if(focus)$("st"+cur).focus()}
+$("stages").addEventListener("keydown",e=>{if(e.key=="ArrowRight"){go(cur+1,1);e.preventDefault()}if(e.key=="ArrowLeft"){go(cur-1,1);e.preventDefault()}});
+drawStages();
+
+/* ---------- 02 trace ---------- */
+const MS=[["ft","Fine-tuned Qwen2.5-7B"],["zs","Zero-shot Qwen2.5-7B"],["gb","Gradient boosting"],["mj","Majority class"]];
+const PL=[["sex","Sex"],["age","Age"],["marital_status","Marital status"],["education","Education level"],["income_decile","Income decile"],["religion","Religion"],["urban_rural","Urban/Rural"],["region","Region"],["caste","Caste"]];
+const AI=Object.fromEntries(D.attrs.map(([a],i)=>[a,i]));
+const NO=q=>D.Q[q].opts.length,OFF={ft:3,gb:11,zs:19,mj:27};
+function toCase(r){const P=D.R[r[0]],q=D.Q[r[1]],n=NO(r[1]),p={};for(const k in OFF)p[k]=r.slice(OFF[k],OFF[k]+n);
+ return {resp:P[0],q:q.text,qname:q.name,opts:q.opts,truth:r[2],p,prof:PL.map(([a,l])=>[l,D.cats[a][P[AI[a]+1]]])}}
+const ST={q:-1,f:"all",row:null,n:0,ft:0,gb:0,zs:0,mj:0};
+const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;");
+function promptText(c){
+ const prof=c.prof.map(([k,v])=>`- ${k}: <mark>${esc(v)}</mark>`).join("\n");
+ const o=c.opts.map((x,i)=>`${i+1}. ${esc(x)}`).join("\n");
+ const lab=c.opts.map((_,i)=>i+1).join("/");
+ return `You are a survey respondent with the following demographic profile:\n\n${prof}\n\nAs this person, please answer the following survey question. Your answer should reflect the values and perspectives typical of someone with your background:\n\nQuestion: ${esc(c.q)}\n\nAnswer options:\n${o}\n\nYour answer:\n\n<span class="ins">This is anonymized survey-simulation research. Respond with exactly one character: one of ${lab}. No words, no punctuation, no explanation -- just that single digit.</span>`}
+const amax=a=>a.indexOf(Math.max(...a));
+function pick(){const pool=D.rows;for(let t=0;t<200000;t++){const r=pool[Math.floor(Math.random()*pool.length)];if(ST.q>=0&&r[1]!=ST.q)continue;const n=NO(r[1]),ok=amax(r.slice(3,3+n))==r[2];if(ST.f=="ok"&&!ok)continue;if(ST.f=="bad"&&ok)continue;return r}return pool[0]}
+function draw(){const r=pick();ST.row=r;if(ST.f=="all"){const c=toCase(r);ST.n++;for(const k in OFF)ST[k]+=amax(c.p[k])==c.truth?1:0}drawTrace()}
+function drawTally(){const pc=k=>ST.n?Math.round(ST[k]/ST.n*100)+"%":"-";$("tally").innerHTML=ST.n?`Unselected draws so far: <b>${ST.n}</b> &middot; fine-tuned right <b>${ST.ft}</b> (${pc("ft")}) &middot; gradient boosting <b>${ST.gb}</b> &middot; zero-shot <b>${ST.zs}</b> &middot; majority <b>${ST.mj}</b>`:"Draw a few respondents with &ldquo;All rows&rdquo; to build an unselected tally."}
+function why(c){const ft=amax(c.p.ft),conf=c.p.ft[ft]/10,ok=ft==c.truth;
+ if(ok&&conf>=70)return `A confident, correct answer (${conf.toFixed(1)}%). Answers like this are rare: only 1,338 of 46,209 reach 70% confidence.`;
+ if(ok)return `Correct, but with only ${conf.toFixed(1)}% on the top option. Most answers look like this: the model spreads its probability and is right a little more often than the majority guess.`;
+ if(conf>=60)return `A confident miss (${conf.toFixed(1)}%). The profile pointed one way and this person answered another.`;
+ return `Wrong, with ${conf.toFixed(1)}% on the top option. With nine demographics and an opinion question, every method often misses; this is the typical failure.`}
+function drawTrace(){
+ const c=toCase(ST.row),ft=amax(c.p.ft),ok=ft==c.truth;
+ $("tracebox").innerHTML=
+ `<div class="tstep"><div class="lab"><span>1</span>Profile</div><div style="font-weight:600">Respondent ${c.resp} &middot; <span style="color:var(--mut);font-weight:500">${c.qname}</span></div><div class="chips">${c.prof.map(([k,v])=>`<span class="chip"><em>${k}</em>${v.replace(/ \(.*\)$/,"")}</span>`).join("")}</div></div>
+  <div class="tstep"><div class="lab"><span>2</span>Prompt</div><div class="prompt" tabindex="0" aria-label="Full prompt">${promptText(c)}</div></div>
+  <div class="tstep"><div class="lab"><span>3</span>Readout</div><div class="bars">${MS.map(([k,l])=>{const t=amax(c.p[k]);return `<div class="bgroup"><div class="bh"><i style="background:${C(k)}"></i>${l}</div>${c.p[k].map((v,i)=>`<div class="brow ${i==t?"top":""} ${i==c.truth?"truth":""}"><span class="d">${i+1}</span><span class="tk"><b data-w="${v/10}" style="width:0;background:${C(k)};opacity:${i==t?1:.45}"></b></span><span class="v">${(v/10).toFixed(1)}%</span></div>`).join("")}</div>`}).join("")}</div></div>
+  <div class="tstep"><div class="lab"><span>4</span>Score</div><div class="opts">${c.opts.map((o,i)=>`<div class="${i==c.truth?"truth":""}"><span>${i+1}</span>${o}${i==c.truth?" &larr; real answer":""}</div>`).join("")}</div>
+   <div class="verdict ${ok?"ok":"bad"}"><b>Fine-tuned: ${ok?"correct":"wrong"}</b><small>Picked &ldquo;${c.opts[ft]}&rdquo; at ${(c.p.ft[ft]/10).toFixed(1)}%</small></div>
+   <div class="scorelist">${MS.map(([k,l])=>{const t=amax(c.p[k]);return `<div><span>${l.replace(" Qwen2.5-7B","")}</span><span class="${t==c.truth?"y":"n"}">${t==c.truth?"correct":"wrong"}</span></div>`}).join("")}</div>
+   <p style="font-size:13.5px;color:var(--ink2)">${why(c)}</p></div>`;
+ drawTally();
+ requestAnimationFrame(()=>requestAnimationFrame(()=>document.querySelectorAll("#tracebox [data-w]").forEach(e=>e.style.width=e.dataset.w+"%")));
+}
+$("selQ").innerHTML=`<option value="-1">All 8 questions</option>`+D.Q.map((q,i)=>`<option value="${i}">${q.name}</option>`).join("");
+$("selQ").onchange=e=>{ST.q=+e.target.value;draw()};
+document.querySelectorAll("#segF button").forEach(b=>b.onclick=()=>{ST.f=b.dataset.f;document.querySelectorAll("#segF button").forEach(x=>x.setAttribute("aria-pressed",x==b));draw()});
+$("draw").onclick=draw;
+draw();
+/* hero card: one random row */
+(function(){const r=pick(),c=toCase(r),ft=amax(c.p.ft),P=c.prof;$("qcard").innerHTML=`<div class="h"><span>Pew Religion in India &middot; random row</span><span>resp. ${c.resp}</span></div><div class="q">${c.qname}</div>${c.opts.map((o,i)=>`<div class="o ${i==ft?"pick":""}"><span class="d">${i+1}</span>${o.replace(" [OR]","")}<span class="p">${(c.p.ft[i]/10).toFixed(1)}%</span></div>`).join("")}<div class="f">${P[0][1]}, ${P[1][1]}, ${P[2][1].toLowerCase()}, ${P[6][1].toLowerCase()} ${P[7][1]}. Fine-tuned model ${ft==c.truth?"is right":"is wrong"}: the real answer was &ldquo;${c.opts[c.truth].replace(" [OR]","")}&rdquo;. Reload for another.</div>`})();
+
+/* ---------- 03 data ---------- */
+function funnel(id,rows,max){$(id).innerHTML=rows.map(([l,v,lab])=>{const w=Math.max(v/max*100,8);return `<div><div class="fb ${w<30?"light":""}"><b style="width:${w}%"></b><span>${lab}</span></div><span class="num" style="font-size:13px;color:var(--mut)">${l}</span></div>`}).join("")}
+funnel("fpew",[["respondents",29999,"29,999 respondents"],["train",23999,"23,999 train"],["test",6000,"6,000 test"]],29999);
+funnel("fwvs",[["candidate items",373,"373 items"],["screened",144,"144 screened"],["used",15,"15 used"]],373);
+const MODELS=[["zs","Zero-shot Qwen2.5-7B","Open 7B instruction model, prompted with the profile","Kaggle 2 x T4, and an Apple M1 at 2.3 s per prompt","16.1%"],
+ ["ft","Fine-tuned Qwen2.5-7B","Same model plus a QLoRA adapter trained on 184,853 answers","University AI lab GPU, 6.6 hours; scored on Kaggle","38.0%"],
+ ["mj","Majority class","Always predicts the most common answer for the question","Instant","30.4%"],
+ ["mj","Logistic regression","Linear classifier on the nine attributes","Laptop CPU, under a minute","38.5%"],
+ ["gb","Gradient boosting","Tree ensemble on the nine attributes","Laptop CPU, under a minute","40.0%"],
+ ["zs","Larger zero-shot LLMs","gpt-oss-120b via Groq and Gemini 3.1 Flash Lite","Free APIs, small subsets","27.6%*"]];
+$("models").innerHTML=MODELS.map(([k,a,b,c,d],i)=>`<tr class="${i==1?"hl":""}"><td><span class="sw" style="background:${C(k)}${i==5?";opacity:.5":""}"></span><b style="font-weight:600">${a}</b></td><td>${b}</td><td style="color:var(--ink2)">${c}</td><td class="r"><b style="font-weight:600">${d}</b></td></tr>`).join("")+
+ `<tr><td colspan="4" style="font-size:13px;color:var(--mut)">* gpt-oss-120b on 100 respondents, at the majority level rather than above it.</td></tr>`;
+
+/* ---------- 04 charts ---------- */
+const LIVE=(()=>{const acc={ft:0,gb:0,zs:0,mj:0},it=D.Q.map(()=>({n:0,ft:0,gb:0,zs:0,mj:0})),bins=[0,.3,.4,.5,.6,.7,.8,.9,1.01].map(()=>({n:0,c:0,s:0}));let hi=0,hiok=0;
+ for(const r of D.rows){const n=NO(r[1]),q=it[r[1]];q.n++;for(const k in OFF){const ok=amax(r.slice(OFF[k],OFF[k]+n))==r[2];if(ok){acc[k]++;q[k]++}}
+  const f=r.slice(3,3+n),cf=Math.max(...f)/1000,ok=amax(f)==r[2];const b=[.3,.4,.5,.6,.7,.8,.9,1.01].findIndex(t=>cf<t);bins[b].n++;bins[b].c+=ok;bins[b].s+=cf;if(cf>=.7){hi++;hiok+=ok}}
+ const N=D.rows.length;for(const k in acc)acc[k]=acc[k]/N*100;
+ return {N,acc,hi,hiok,items:it.map((q,i)=>[D.Q[i].name,q.ft/q.n*100,q.gb/q.n*100,q.zs/q.n*100,q.mj/q.n*100]),bins:bins.filter(b=>b.n).map(b=>[b.s/b.n*100,b.c/b.n*100,b.n])}})();
+function chAcc(){const A=LIVE.acc,R=[["Zero-shot Qwen2.5-7B",A.zs,"zs"],["Majority class",A.mj,"mj"],["Fine-tuned Qwen2.5-7B",A.ft,"ft"],["Logistic regression *",38.5,"mj"],["Gradient boosting",A.gb,"gb"]];
+const x0=170,x1=470,X=v=>x0+v/50*(x1-x0),bh=26,gap=16,y0=14;let s="";
+ for(let v=0;v<=50;v+=10)s+=`<line class="grid" x1="${X(v)}" x2="${X(v)}" y1="6" y2="${y0+R.length*(bh+gap)-6}"/><text x="${X(v)}" y="${y0+R.length*(bh+gap)+10}" text-anchor="middle">${v}%</text>`;
+ R.forEach(([l,v,k],i)=>{const y=y0+i*(bh+gap);s+=`<text class="lbl" x="${x0-12}" y="${y+bh/2+4.5}" text-anchor="end">${l}</text><rect x="${x0}" y="${y}" width="${X(v)-x0}" height="${bh}" rx="4" fill="${C(k)}" opacity="${k=="mj"&&i==3?.6:1}"/><text class="val" x="${X(v)+8}" y="${y+bh/2+4.5}">${v.toFixed(1)}%</text>`});
+ s+=`<line x1="${X(A.mj)}" x2="${X(A.mj)}" y1="4" y2="${y0+R.length*(bh+gap)-8}" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="4 4"/>`;
+ $("chAcc").innerHTML=s}
+function chCal(){const B=LIVE.bins;
+ const L=60,R=500,T=14,Bt=250,X=v=>L+v/100*(R-L),Y=v=>Bt-v/100*(Bt-T);let s="";
+ for(let v=0;v<=100;v+=25)s+=`<line class="grid" x1="${L}" x2="${R}" y1="${Y(v)}" y2="${Y(v)}"/><text x="${L-8}" y="${Y(v)+4}" text-anchor="end">${v}%</text><text x="${X(v)}" y="${Bt+18}" text-anchor="middle">${v}%</text>`;
+ s+=`<line x1="${X(0)}" y1="${Y(0)}" x2="${X(100)}" y2="${Y(100)}" stroke="var(--line2)" stroke-width="1.5" stroke-dasharray="5 5"/>`;
+ s+=`<polyline fill="none" stroke="var(--ft)" stroke-width="2" points="${B.map(b=>`${X(b[0])},${Y(b[1])}`).join(" ")}"/>`;
+ B.forEach(b=>{const r=3+Math.sqrt(b[2])/12;s+=`<circle cx="${X(b[0])}" cy="${Y(b[1])}" r="${r.toFixed(1)}" fill="var(--ft)" fill-opacity=".22" stroke="var(--ft)" stroke-width="1.5"><title>${b[2].toLocaleString()} answers: ${b[0].toFixed(1)}% confident, ${b[1].toFixed(1)}% correct</title></circle>`});
+ s+=`<text x="${(L+R)/2}" y="${Bt+40}" text-anchor="middle">model's stated confidence</text><text x="14" y="${(T+Bt)/2}" text-anchor="middle" transform="rotate(-90 14 ${(T+Bt)/2})">actually correct</text>`;
+ $("chCal").innerHTML=s}
+function chItems(){const I=LIVE.items.map(x=>x.slice());
+ I.sort((a,b)=>(b[1]-b[4])-(a[1]-a[4]));
+ const ks=[["ft",1,"Fine-tuned"],["gb",2,"Gradient boosting"],["mj",4,"Majority"],["zs",3,"Zero-shot"]];
+ $("lgItems").innerHTML=ks.map(([k,,l])=>`<span><i style="background:${C(k)}"></i>${l}</span>`).join("");
+ const L=250,R=900,X=v=>L+v/60*(R-L),rh=46,T=18;let s="";
+ for(let v=0;v<=60;v+=10)s+=`<line class="grid" x1="${X(v)}" x2="${X(v)}" y1="${T-8}" y2="${T+I.length*rh-12}"/><text x="${X(v)}" y="${T+I.length*rh+4}" text-anchor="middle">${v}%</text>`;
+ I.forEach((r,i)=>{const y=T+i*rh+12,lift=r[1]-r[4];
+  s+=`<text class="lbl" x="${L-16}" y="${y+4}" text-anchor="end">${r[0]}</text><text x="${L-16}" y="${y+20}" text-anchor="end">+${lift.toFixed(1)} pts over majority</text>`;
+  s+=`<line x1="${X(Math.min(...r.slice(1)))}" x2="${X(Math.max(...r.slice(1)))}" y1="${y}" y2="${y}" stroke="var(--line2)" stroke-width="2"/>`;
+  s+=`<rect x="${X(r[4])}" y="${y-4}" width="${X(r[1])-X(r[4])}" height="8" fill="var(--ft)" opacity=".18"/>`;
+  ks.slice().reverse().forEach(([k,j])=>{s+=`<circle cx="${X(r[j])}" cy="${y}" r="${k=="ft"?7:5.5}" fill="${C(k)}" stroke="var(--paper)" stroke-width="2"><title>${r[0]}: ${r[j].toFixed(1)}%</title></circle>`});
+  s+=`<text class="val" x="${X(Math.max(r[1],r[2]))+14}" y="${y+4}">${r[1].toFixed(1)}%</text>`});
+ $("chItems").innerHTML=s}
+chAcc();chCal();chItems();
+(function(){const k=document.querySelectorAll("#kpis .kpi b"),A=LIVE.acc;k[0].textContent=A.ft.toFixed(1)+"%";k[0].nextElementSibling.textContent=`fine-tuned accuracy, against ${A.mj.toFixed(1)}% for always guessing the most common answer`;k[1].textContent=Math.round((A.ft-A.mj)/(A.gb-A.mj)*100)+"%";k[3].textContent=(LIVE.hiok/LIVE.hi*100).toFixed(1)+"%";k[3].nextElementSibling.textContent=`accuracy on the ${LIVE.hi.toLocaleString()} answers where it is at least 70% confident`})();
+
+/* ---------- 06 journey ---------- */
+const PH=[
+ ["Phase 1","WVS-7","Zero-shot with free models",
+  "Built a codebook-driven pipeline on WVS-7 India and ran Gemini 3.1 Flash Lite, gpt-oss-120b and a 4-bit Qwen2.5-7B on an Apple M1.",
+  ["Accuracy stayed at 22 to 26%, at or just above the majority guess, while simple classifiers on the same rows reached 34 to 38%.","Region labels were wrong on every code until checked against the official annex.","The cache treated failed calls as final answers."],
+  [["fix","Region label bug fixed"],["fix","Refusals 13% to 0%"]]],
+ ["Phase 2","Pew","Matched baselines and fine-tuning",
+  "Moved to Pew Religion in India for its size. Added majority, logistic and gradient boosting on identical rows, then fine-tuned Qwen2.5-7B with QLoRA on the university lab GPU.",
+  ["184,853 training examples, 5,777 steps, 6.6 hours.","An apparent collapse on one item turned out to be a decoding artefact; switching to the next-digit readout gave the faithful 38.0%."],
+  [["win","Fine-tuned 38.0%"],["fix","Decoding artefact found"]]],
+ ["Phase 3","Extras","Scale, data needs and transfer",
+  "Tested whether a bigger model, more labelled data, or new questions change the picture.",
+  ["gpt-oss-120b zero-shot: 27.6%, at the majority level.","Logistic regression needs about 400 labelled respondents to beat the majority guess; gradient boosting about 1,600.","Adapter on 8 unseen items: 28.9% against 28.5%, inconclusive."],
+  [["neu","Transfer inconclusive"]]],
+ ["Phase 4","Paper","Writing and publication",
+  "Several paper drafts, then submission to the Hinweis Fifth International Conference on AI and Data Science.",
+  ["Accepted with modification as paper 591 at AIDE-2026.","Camera-ready revised and sent."],
+  [["win","Accepted, AIDE-2026"]]],
+ ["Phase 5","Capstone","Report, poster and demo",
+  "A 34-page report, the college-template presentation, landscape and portrait posters, and an offline demo that replays the stored model outputs.",
+  [],[["neu","Poster, report, demo"]]]];
+$("tl").innerHTML=PH.map(([a,b,h,p,ul,pills])=>`<div class="ph"><div class="when">${a}<b>${b}</b></div><div><h3>${h}</h3><p>${p}</p>${ul.length?`<ul>${ul.map(x=>`<li>${x}</li>`).join("")}</ul>`:""}<div>${pills.map(([k,t])=>`<span class="pill ${k}">${t}</span>`).join("")}</div></div></div>`).join("");
+
+/* ---------- nav + theme ---------- */
+const links=[...document.querySelectorAll(".nav a")];
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)links.forEach(a=>a.classList.toggle("on",a.getAttribute("href")=="#"+e.target.id))}),{rootMargin:"-40% 0px -55% 0px"});
+document.querySelectorAll("main section").forEach(s=>io.observe(s));
+$("theme").onclick=()=>{const r=document.documentElement,dark=r.dataset.theme?r.dataset.theme=="dark":matchMedia("(prefers-color-scheme: dark)").matches;r.dataset.theme=dark?"light":"dark";try{localStorage.setItem("pp-theme",r.dataset.theme)}catch(e){}};
+try{const t=localStorage.getItem("pp-theme");if(t)document.documentElement.dataset.theme=t}catch(e){}
+</script>
