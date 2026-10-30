@@ -3,20 +3,20 @@
 @page { size: 1920px 1080px; margin: 0 }
 *{box-sizing:border-box} html,body{margin:0;padding:0}
 body{width:1920px;height:1080px;font-family:Helvetica,Arial,sans-serif;color:#14213d;background:#fff;position:relative;overflow:hidden}
-.hdr{height:128px;background:#001d3e;color:#fff;display:flex;align-items:center;padding:0 34px;gap:30px}
+.hdr{height:140px;background:#001d3e;color:#fff;display:flex;align-items:center;padding:0 34px;gap:30px}
 .hdr img{height:104px}
-.school{font-size:21px;font-weight:700;letter-spacing:.5px;line-height:1.25;width:360px;border-left:2px solid #6f84b5;padding-left:26px}
+.school{font-size:19px;font-weight:700;letter-spacing:.5px;line-height:1.25;width:330px;border-left:2px solid #6f84b5;padding-left:26px}
 .titlebox{flex:1;text-align:center}
-.titlebox h1{margin:0;font-size:46px;letter-spacing:1px;line-height:1.05}
+.titlebox h1{margin:0;font-size:40px;letter-spacing:1px;line-height:1.05}
 .titlebox h1 span{color:#ffb020}
-.titlebox p{margin:6px 0 0;font-size:20px;font-style:italic;color:#dbe4ff}
-.meta{width:400px;font-size:18px;line-height:1.35}
+.titlebox p{margin:8px 0 0;font-size:19px;font-style:italic;color:#dbe4ff}
+.meta{width:300px;font-size:18px;line-height:1.4;border-left:2px solid #6f84b5;padding-left:22px}
 .meta b{color:#ffb020}
 .team{height:70px;background:#eef2fb;display:flex;align-items:center;padding:0 34px;gap:34px;border-bottom:3px solid #0f2350;font-size:19px}
 .team .lbl{font-weight:700;color:#0f2350}
 .team .m{display:flex;flex-direction:column;line-height:1.25}
 .team .m small{color:#4a5a80;font-size:16px}
-.grid{display:grid;grid-template-columns:1fr 1.25fr 1fr;gap:16px;padding:14px 22px;height:calc(1080px - 128px - 70px - 44px)}
+.grid{display:grid;grid-template-columns:1fr 1.25fr 1fr;gap:16px;padding:14px 22px;height:calc(1080px - 140px - 70px - 44px)}
 .col{display:flex;flex-direction:column;gap:14px;min-height:0}
 .card{border:2px solid #b8c4e4;border-radius:12px;padding:8px 14px;background:#fbfcff;overflow:hidden}
 .card h2{margin:0 0 4px;font-size:21px;color:#0f2350;letter-spacing:.4px;border-bottom:2px solid #ffb020;padding-bottom:4px}
@@ -32,6 +32,7 @@ img.fig{width:100%;display:block;margin:6px 0 2px}
 table{border-collapse:collapse;width:100%;font-size:17px;margin:6px 0}
 th,td{border-bottom:1px solid #b8c4e4;padding:2px 6px;text-align:center}
 th{background:#eef2fb;color:#0f2350} td:first-child,th:first-child{text-align:left}
+.card h3{margin:8px 0 2px;font-size:18px;color:#0f2350}
 .ref{font-size:14px!important;line-height:1.25!important;margin:2px 0!important}
 .ftr{position:absolute;left:0;right:0;bottom:0;height:44px;background:#001d3e;color:#fff;font-size:18px;display:flex;align-items:center;padding:0 30px;gap:16px}
 .ftr b{color:#ffb020}
@@ -41,7 +42,7 @@ th{background:#eef2fb;color:#0f2350} td:first-child,th:first-child{text-align:le
   <div class="school">MUKESH PATEL SCHOOL OF TECHNOLOGY MANAGEMENT &amp; ENGINEERING</div>
   <div class="titlebox"><h1>SILICON SAMPLING <span>FOR INDIAN PUBLIC OPINION</span></h1>
   <p>How do LLM respondents use demographics? Prompting, fine-tuning and transfer</p></div>
-  <div class="meta"><b>CAPSTONE PROJECT</b> &middot; A.Y. 2026&ndash;2027<br>Accepted: Hinweis AIDE-2026 (Paper ID 591)</div>
+  <div class="meta"><b>CAPSTONE PROJECT</b><br>A.Y. 2026&ndash;2027<br>Accepted at Hinweis AIDE-2026<br>Paper ID 591</div>
 </div>
 <div class="team">
   <div class="m"><span class="lbl" style="font-size:24px">GROUP 55</span></div>
@@ -70,17 +71,23 @@ th{background:#eef2fb;color:#0f2350} td:first-child,th:first-child{text-align:le
    <li><b>RQ4</b> Do a larger model or more labelled data change the picture?</li></ul></div>
  </div>
  <div class="col">
-  <div class="card f2"><h2>4. METHODS</h2>
+  <div class="card" style="flex:0 0 auto"><h2>4. METHODS</h2>
    <img class="fig" src="fig_framework.png" alt="framework">
    <div class="cap">Same prompt and identical rows for every predictor: zero-shot Qwen2.5-7B (chat, raw, no profile), QLoRA fine-tuned Qwen2.5-7B, larger LLMs, and majority / logistic / GBM baselines.</div>
    <ul><li><b>QLoRA</b>: 4-bit, rank 16, 10.1M trainable parameters, 184,853 examples, 6.6 GPU-hours.</li>
    <li><b>Diagnostics</b>: accuracy, NLL, ECE, variance share, directional validity, JSD, Holm-corrected subgroup gaps.</li>
    <li><b>Compute</b>: about 0.2 s per answer on a T4 GPU; classifiers are far cheaper.</li></ul></div>
-  <div class="card f3"><h2>5. RESULTS &amp; DISCUSSION</h2>
+  <div class="card" style="flex:1 1 auto"><h2>5. RESULTS &amp; DISCUSSION</h2>
    <div class="stats">
     <div class="st"><b>17.5%</b><span>zero-shot accuracy vs 30.2% majority (200 respondents)</span></div>
     <div class="st"><b>29% vs 4%</b><span>profile variance share: model vs real answers</span></div>
     <div class="st"><b>38.0%</b><span>fine-tuned, 6,000 respondents (GBM 40.0%, ECE 0.009)</span></div></div>
+   <h3>Where it works, and where it does not</h3>
+   <table><tr><th>Slice of the test fold</th><th>Fine-tuned</th><th>GBM</th><th>Majority</th></tr>
+    <tr><td>Number of children (best item)</td><td><b>56.4%</b></td><td>57.5%</td><td>31.6%</td></tr>
+    <tr><td>Politicians in religion (weakest)</td><td>36.7%</td><td>39.4%</td><td>35.4%</td></tr>
+    <tr><td>Answers at &ge;70% confidence (1,338)</td><td><b>87.3%</b></td><td>87.3%</td><td>23.2%</td></tr></table>
+   <div class="cap">Confident answers are mostly unmarried respondents predicted to have no children, a rule a classifier also finds.</div>
 </div>
  </div>
  <div class="col">
@@ -94,9 +101,8 @@ th{background:#eef2fb;color:#0f2350} td:first-child,th:first-child{text-align:le
     <tr><td>Fine-tuned Qwen2.5-7B</td><td>38.0%</td><td>1.48</td></tr>
     <tr><td>Zero-shot Qwen2.5-7B (chat)</td><td>16.1%</td><td>4.26</td></tr></table>
    <ul><li>The profile is used <b>heavily but not usefully</b>: removing it raises zero-shot accuracy by 3.6 points.</li>
-   <li>Fine-tuning recovers 79% of the gap to GBM but stays 2.1 points below it.</li>
-   <li><b>No detectable gain on unseen items</b> (28.9% vs 28.5%, approximate port, 8 items).</li>
-   <li>Matched classifiers remain the benchmark LLM respondents must beat.</li></ul></div>
+   <li>Fine-tuning recovers 79% of the gap to GBM, ending 2.1 points short.</li>
+   <li><b>No detectable gain on unseen items</b> (28.9% vs 28.5%, approximate port, 8 items).</li></ul></div>
   <div class="card f5"><h2>6. REFERENCES / ACKNOWLEDGEMENTS</h2>
    <p class="ref">Argyle et al., Political Analysis 31(3), 2023. &bull; Santurkar et al., ICML 2023. &bull; Chen, Zhu, Zheng, arXiv:2607.26348, 2026. &bull; Miranda &amp; Balbi, Entropy 27(9), 2025. &bull; Hu &amp; Collier, ACL 2024. &bull; Suh et al., ACL 2025. &bull; Dettmers et al., QLoRA, NeurIPS 2023.</p>
    <p class="ref"><b>Acknowledgements:</b> Ms. Khushbu Chauhan (mentor); the university AI Lab for GPU access.</p>
