@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset="utf-8"><title>Project Summary: Silicon Sampling for Indian Public Opinion</title>
+<!doctype html><html><head><meta charset="utf-8"><title>Group 55 Project Summary</title>
 <style>
 @page{size:A4;margin:16mm 15mm}*{box-sizing:border-box}body{font-family:Georgia,"Times New Roman",serif;color:#1a2238;font-size:11pt;line-height:1.45;margin:0}
 h1{font-size:23pt;margin:0 0 2pt;color:#14264f;letter-spacing:-.01em}.sub{color:#5a6785;font-family:Helvetica,Arial,sans-serif;font-size:10pt;margin-bottom:12pt}
@@ -33,7 +33,7 @@ code{font-family:Menlo,monospace;font-size:9pt;background:#eef1f8;padding:0 3pt;
 <h3>Phase 4: Writing and publication</h3>
 <ul><li>Several paper versions (IEEE-style drafts, 6, 8 and longer). Chosen venue: Hinweis Fifth International Conference on AI and Data Science (AIDE-2026), paper ID 591, <b>accepted with modification</b>. Camera-ready revised and sent. Registration needs the form, copyright form and payment proof (fee Rs. 10,500) to the conference email by 20 Nov 2026.</li></ul>
 <h3>Phase 5: Capstone package and demo</h3>
-<ul><li>34-page project report, presentation (college template, 4:3), landscape and portrait posters (named 55), acceptance proof, and an interactive offline demo page.</li></ul>
+<ul><li>34-page project report, presentation (college template, 4:3), landscape and portrait posters (named 55), acceptance proof, and three offline web pages: an interactive demo, a pipeline walkthrough, and a full-data explorer.</li></ul>
 
 <h2>4. Data and method</h2>
 <table><tr><th>Item</th><th>Pew Religion in India</th><th>WVS-7 India</th></tr>
@@ -55,11 +55,11 @@ code{font-family:Menlo,monospace;font-size:9pt;background:#eef1f8;padding:0 3pt;
 <p>Extrapolations, not measurements: scoring all 29,999 respondents on 73 items is about 2.2 million rows, roughly 116 T4-hours; fine-tuning on all 73 items is about 63 hours on the lab GPU.</p>
 
 <h2>7. Honest limitations</h2>
-<ul><li>One fold, one seed, one epoch. Results are from a single training run.</li><li>The transfer test used an approximate MLX port and only 8 held-out items, so it is inconclusive, not proof of failure.</li><li>Zero-shot controls on 100 to 200 respondent subsets; no frontier model on these surveys; survey weights not applied.</li><li>Exact-match accuracy; scoring in fp16 against bf16 training.</li><li>The live demo uses a 4-bit MLX base that differs slightly from the training base.</li></ul>
+<ul><li>One fold, one seed, one epoch. Results are from a single training run.</li><li>The transfer test used an approximate MLX port and only 8 held-out items, so it is inconclusive, not proof of failure.</li><li>Zero-shot controls on 100 to 200 respondent subsets; no frontier model on these surveys; survey weights not applied.</li><li>Exact-match accuracy; scoring in fp16 against bf16 training.</li><li>The demos replay stored model outputs from the full run; none of them runs the model live.</li></ul>
 
 <h2>8. What you have and where it is</h2>
 <table><tr><th>Item</th><th>Location</th></tr>
-<tr><td>Submission files (report, PPT, posters, paper, acceptance proof)</td><td><code>~/Downloads/Capstone_Group55/</code></td></tr><tr><td>Interactive demo</td><td><code>Capstone_Group55/Live_Demo.html</code> and <code>demo_app/</code> in the repo</td></tr>
+<tr><td>Submission files (report, PPT, posters, paper, acceptance proof)</td><td><code>~/Downloads/Capstone_Group55/</code></td></tr><tr><td>Web pages (each also published as a cloud artifact)</td><td><code>G55_1_Pipeline_Walkthrough.html</code>, <code>G55_2_Full_Data_Explorer.html</code>, <code>G55_3_Interactive_Demo.html</code> in <code>Capstone_Group55/</code>; sources in <code>demo_app/</code> in the repo</td></tr>
 <tr><td>Code, paper sources, notebooks</td><td>github.com/DevilHunter695/silicon-sampling-capstone</td></tr><tr><td>Hand-off notes</td><td><code>CONTINUATION_BRIEF.md</code> in the repo</td></tr></table>
 <div class="box"><b>Still on you:</b> mentor signature on the report; open the PPT once in PowerPoint; ask Krishna Samdani about late acceptance (the 25 Oct deadline passed); Hinweis registration and payment by 20 Nov; add any new Kaggle results if they arrive.</div>
 
@@ -67,7 +67,7 @@ code{font-family:Menlo,monospace;font-size:9pt;background:#eef1f8;padding:0 3pt;
 <div class="q"><b>Why is accuracy only 38%?</b> Individual opinions are hard to predict from nine demographic attributes, and every method is limited: majority 30.4%, best classifier 40.0%. The meaningful comparison is the lift over the majority guess, and the calibration, which is excellent.</div>
 <div class="q"><b>Is the model better than a simple classifier?</b> No. Gradient boosting is 2 points ahead on accuracy at a tiny fraction of the cost. The model's value is that it can be conditioned in language and may transfer, which we could not confirm.</div>
 <div class="q"><b>Does fine-tuning generalise to new questions?</b> We found no detectable gain on 8 unseen items (28.9% vs 28.5%, p = 0.18) but the test was small and approximate. It is an open question.</div>
-<div class="q"><b>Is the demo live?</b> The default demo replays stored outputs from the full run. The optional live button runs Qwen2.5-7B with our adapter on the laptop, using a 4-bit MLX base, so probabilities can differ slightly.</div>
+<div class="q"><b>Is the demo live?</b> No. The demos replay the stored outputs of the full run on all 46,209 test answers, so what you see is exactly what the model produced. Running the model live would need a GPU or a 4-bit port that differs slightly from the training base.</div>
 <div class="q"><b>Why does zero-shot do so badly?</b> It reacts to the profile strongly (29% of its variance against 4% in real answers) but in the wrong direction, so the profile lowers its accuracy by 3.6 points.</div>
 <div class="q"><b>What are the confident predictions?</b> Mostly unmarried respondents predicted to have no children, a simple rule a classifier also finds. We say so openly.</div>
 <div class="q"><b>Was the paper accepted?</b> Yes, at Hinweis AIDE-2026, paper ID 591, accepted with modification. The camera-ready is revised.</div>
