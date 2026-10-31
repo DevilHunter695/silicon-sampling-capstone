@@ -86,16 +86,31 @@ para("October 2026", 12, align=WD_ALIGN_PARAGRAPH.CENTER, line=1.0, space_after=
 sec = d.add_section(WD_SECTION.NEW_PAGE); setup(sec); footer_pagenum(sec, "lowerRoman", 1)
 def front_title(t):
     para(t, 14, True, align=WD_ALIGN_PARAGRAPH.CENTER, line=1.0, space_after=16, before=6)
-front_title("CERTIFICATE")
-para("This is to certify that the capstone project entitled **“" + C.TITLE + "”** is a bonafide work carried out by the following students of Group " + C.GROUP + ", Department of Computer Engineering, Mukesh Patel School of Technology Management & Engineering, NMIMS, during the academic year 2026-2027, under my guidance, in partial fulfilment of the requirements of the Capstone Project.")
-for nm, sap in C.STUDENTS: para(f"{nm}  (SAP ID: {sap})", 12, align=WD_ALIGN_PARAGRAPH.LEFT, line=1.3, space_after=2, indent=1.0)
-para("", space_after=36)
-tb = d.add_table(rows=2, cols=2); tb.autofit = False
-for ci, (nm, role) in enumerate(((C.MENTOR, "Project Mentor"), ("____________________", "Head of Department / Capstone Committee"))):
-    c = tb.cell(0, ci); c.width = Cm(7.7); runs(c.paragraphs[0], "\n\n_______________________", 12)
-    c2 = tb.cell(1, ci); c2.width = Cm(7.7); runs(c2.paragraphs[0], nm if ci == 0 else "", 12, True); p2 = c2.add_paragraph(); runs(p2, role, 11)
-para("", space_after=8)
-para("Date: ____________________          Place: ____________________", 12, align=WD_ALIGN_PARAGRAPH.LEFT, line=1.3)
+def _logo(after=6):
+    lp = para("", align=WD_ALIGN_PARAGRAPH.CENTER, line=1.0, space_after=after); lp.add_run().add_picture("logo_color.png", width=Cm(2.5))
+# certificate in the format required by the capstone guidelines (page 27)
+C_ = WD_ALIGN_PARAGRAPH.CENTER
+para("SVKM\u2019s NMIMS University", 16, True, align=C_, line=1.0, space_after=1)
+para("(Deemed-to-be University)", 9, align=C_, line=1.0, space_after=4)
+_logo()
+para("MUKESH PATEL SCHOOL OF TECHNOLOGY", 13, True, align=C_, line=1.0, space_after=0)
+para("MANAGEMENT & ENGINEERING (MPSTME)", 13, True, align=C_, line=1.0, space_after=6)
+para("Vile Parle (W), Mumbai-56", 13, True, align=C_, line=1.0, space_after=6)
+para("(Academic Year 2026-2027)", 12, True, align=C_, line=1.0, space_after=8)
+cp_ = para("", align=C_, line=1.0, space_after=4); cr_ = cp_.add_run("CERTIFICATE"); cr_.bold = True; cr_.underline = True; cr_.font.size = Pt(14); cr_.font.name = FONT
+_logo(8)
+para("This is to certify that the project entitled (\u201c" + C.TITLE + "\u201d), has been done by the following students of Group " + C.GROUP + " under my guidance and supervision & has been submitted in partial fulfilment of the degree of Bachelor of Technology in Computer Engineering of MPSTME, SVKM\u2019s NMIMS (Deemed-to-be University), Mumbai, India.", 12, line=1.3, space_after=6)
+for nm, sap in C.STUDENTS: para(f"{nm}  (SAP ID: {sap})", 12, align=WD_ALIGN_PARAGRAPH.LEFT, line=1.2, space_after=2, indent=1.0)
+para("", space_after=14)
+tb = d.add_table(rows=2, cols=2); tb.alignment = WD_TABLE_ALIGNMENT.CENTER; tb.autofit = False
+def _cell(ri, ci, lines):
+    c = tb.cell(ri, ci); c.width = Cm(7.7)
+    for j, (t_, b_) in enumerate(lines):
+        cp2 = c.paragraphs[0] if j == 0 else c.add_paragraph(); cp2.paragraph_format.space_after = Pt(1); cp2.paragraph_format.line_spacing = 1.0; runs(cp2, t_, 11, b_)
+_cell(0, 0, [("\n\n_______________________", False), ("Project mentor (name and Signature)", False), ("(Internal Guide)", False), (C.MENTOR, True)])
+_cell(0, 1, [("\n\n_______________________", False), ("Examiner (name and Signature)", False), ("", False), ("", False)])
+_cell(1, 0, [("", False), ("Date:", False), ("Place: Mumbai", False)])
+_cell(1, 1, [("\n\n_______________________", False), ("(HoD) (name and Signature)", False)])
 page_break()
 front_title("DECLARATION")
 para("We declare that this report, **“" + C.TITLE + "”**, describes the work carried out by us as part of the capstone project at the Mukesh Patel School of Technology Management & Engineering, NMIMS, under the guidance of " + C.MENTOR + ". All sources of data, ideas and text taken from the work of others have been acknowledged and cited in the references. The surveys used are public datasets and are used in line with the terms of their publishers; respondent-level microdata are not redistributed.")
