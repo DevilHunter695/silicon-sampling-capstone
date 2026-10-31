@@ -1,0 +1,142 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Group 55 Presenter Guide</title>
+<style>
+@page{size:A4;margin:15mm 14mm}*{box-sizing:border-box}
+body{font-family:Georgia,"Times New Roman",serif;color:#1a2238;font-size:10.4pt;line-height:1.45;margin:0}
+h1{font-size:22pt;margin:0 0 2pt;color:#14264f;letter-spacing:-.01em}
+.sub{color:#5a6785;font-family:Helvetica,Arial,sans-serif;font-size:9.5pt;margin-bottom:10pt}
+h2{font-family:Helvetica,Arial,sans-serif;font-size:11.5pt;text-transform:uppercase;letter-spacing:.08em;color:#b8312c;border-bottom:1.5px solid #e3dfd3;padding-bottom:3pt;margin:16pt 0 7pt;break-after:avoid}
+h3{font-family:Helvetica,Arial,sans-serif;font-size:10.4pt;margin:10pt 0 3pt;color:#14264f;break-after:avoid}
+p{margin:0 0 6pt}ul{margin:2pt 0 6pt;padding-left:16pt}li{margin:0 0 2.5pt}
+.box{border:1px solid #d8d2c0;background:#faf8f3;border-radius:6px;padding:7pt 10pt;margin:6pt 0;break-inside:avoid}
+.box.key{border-left:4px solid #14264f}.box.warn{border-left:4px solid #b8312c;background:#fdf3f1}.box.ok{border-left:4px solid #1f8a55;background:#f0f8f3}
+.box b.t{display:block;font-family:Helvetica,Arial,sans-serif;font-size:8.6pt;text-transform:uppercase;letter-spacing:.1em;color:#5a6785;margin-bottom:2pt}
+table{border-collapse:collapse;width:100%;margin:5pt 0 8pt;font-family:Helvetica,Arial,sans-serif;font-size:8.6pt;line-height:1.35}
+th{background:#14264f;color:#fff;text-align:left;padding:4pt 6pt;font-weight:600}
+td{padding:4pt 6pt;border-bottom:1px solid #e3dfd3;vertical-align:top}tr{break-inside:avoid}
+td.n,th.n{text-align:right;white-space:nowrap}
+.tabs td:first-child{font-weight:700;white-space:nowrap;color:#14264f}
+code{font-family:Menlo,Consolas,monospace;font-size:8.8pt;background:#efece4;padding:0 3pt;border-radius:3px}
+.say{font-style:italic;color:#2b3a5c}
+.pg{break-before:page}
+@media screen{html,body{background:#fff;color-scheme:light}body{max-width:880px;margin:0 auto;padding:24px 16px}table{display:block;overflow-x:auto}}
+</style></head><body>
+
+<h1>Group 55 Presenter Guide</h1>
+<div class="sub">What to say on every page of the demo, and how to give reasons during the quiz and the race</div>
+
+<h2>0. The story in 30 seconds</h2>
+<div class="box key"><b class="t">Say this first</b>
+<p class="say">We asked whether a language model can answer a survey the way an Indian respondent would. We gave Qwen2.5-7B a person's profile (sex, age, marital status, education, income, religion, caste, region, urban or rural) and asked real Pew questions. Prompted alone it scores 16.1%, worse than always guessing the most common answer (30.4%). After fine-tuning on respondent data it reaches 38.0%, with excellent calibration, but a gradient-boosting classifier on the same nine attributes still gets 40.0%. So fine-tuning fixes the model, but it does not beat the simple baseline.</p></div>
+<table><tr><th>Memorise these</th><th class="n">Value</th><th>Where it comes from</th></tr>
+<tr><td>Fine-tuned accuracy</td><td class="n">38.0%</td><td>46,209 test answers, 6,000 respondents, 8 questions</td></tr>
+<tr><td>Majority guess / best classifier</td><td class="n">30.4% / 40.0%</td><td>always the most common answer / gradient boosting</td></tr>
+<tr><td>Zero-shot (prompted only)</td><td class="n">16.1%</td><td>same model before fine-tuning</td></tr>
+<tr><td>Calibration error</td><td class="n">0.009</td><td>stated confidence matches how often it is right</td></tr>
+<tr><td>Confident answers</td><td class="n">87.3% on 1,338</td><td>answers with 70% or more confidence, almost all the children question</td></tr>
+<tr><td>Fine-tuning closes</td><td class="n">79%</td><td>of the gap from the majority guess to gradient boosting</td></tr></table>
+
+<h2>1. How the model actually decides</h2>
+<p>This is the base for every reason you give. Keep it simple and do not over-claim.</p>
+<ul>
+<li><b>One pass, no thinking out loud.</b> The prompt (profile, question, numbered options) goes in. The model produces a probability for each answer digit (1, 2, 3, ...) at the next token. We normalise them and read them off. The prediction is the most likely option and its probability is the confidence.</li>
+<li><b>What fine-tuning taught it.</b> It saw 23,999 training respondents answering these questions. It learned, for each kind of person, which answers are common. In effect it learned a lookup: <i>for people like this, the most common answer is X, and about this many chose it.</i></li>
+<li><b>What it does not do.</b> It does not reason about the person's life, values or beliefs, and we cannot see inside it. When you explain a prediction you are describing a measured pattern, not the model's thoughts.</li>
+</ul>
+<div class="box key"><b class="t">The one idea that explains everything</b>
+<p>For any group of similar people, a method can at best pick that group's most common answer, and it is right only as often as that answer is common inside the group. The fine-tuned model finds the right most-common answer for most groups (in the groups we checked, its pick matched the true most common answer in about four out of five), so its accuracy is capped by how <i>concentrated</i> people's answers are, not by how clever the model is. Opinions are spread out, so the cap is low, near 40% for every method.</p></div>
+
+<h3>The four methods in one line each</h3>
+<table><tr><th>Method</th><th>One-line reason for its behaviour</th></tr>
+<tr><td>Majority class</td><td>Ignores the person. Always answers the question's overall most common option. Accuracy is just how common that option is.</td></tr>
+<tr><td>Gradient boosting</td><td>Learns the same group lookup directly from the nine attributes, with no language model in the way. It is the ceiling for this information.</td></tr>
+<tr><td>Fine-tuned Qwen</td><td>Learns the same lookup through the language model. It agrees with gradient boosting on 61% to 84% of answers (by question) and is about 2 points behind.</td></tr>
+<tr><td>Zero-shot Qwen</td><td>Has never seen these surveys. It reads the profile, ignores real answer rates, and falls back on hedged, moderate answers (table in section 3).</td></tr></table>
+
+<h2 class="pg">2. The demo, page by page</h2>
+<p>The same eight pages appear in both demos. The Full Data demo has "Random draw" as page 2; the Selected Data demo has "Showcase". Everything else is identical, only the data behind it differs.</p>
+<table class="tabs"><tr><th>Page</th><th>What it shows, and what to say</th><th>If someone pushes</th></tr>
+<tr><td>Overview</td><td>The headline numbers and the four-step pipeline: profile, prompt, model, probabilities. <span class="say">"Same pipeline for every method, so differences come from the method, not the setup."</span></td><td>Selected demo: the first counter is the selection size, not the full data. Say it, then point to 38.0% overall.</td></tr>
+<tr><td>Showcase (selected) / Random draw (full)</td><td>One respondent at a time: profile, true answer, each method's probabilities, verdict. Showcase is the model's most confident correct answers. Random draw is unselected, so wrong answers appear as often as they really do.</td><td>"Showcase rows were chosen by us." If asked for typical performance, switch to the Full demo and draw a few.</td></tr>
+<tr><td>Builder</td><td>Pick any profile and question. It finds the real test respondents who match and compares each method's average predicted answers with what that group actually said. <span class="say">"The model gets group patterns right; individuals are the hard part."</span></td><td>Small groups are noisy. The page refuses fewer than 5 matches.</td></tr>
+<tr><td>Groups</td><td>Does the model get the differences between groups right (for example by region)? Correlation near 0.82 on the full fold.</td><td>"With only five or six groups a correlation can look high for any method, so read it with the bars." Zero-shot can look good here too (0.96 vs 0.92 on children by religion, five groups).</td></tr>
+<tr><td>Confidence</td><td>Slide the minimum confidence. Accuracy rises as you get stricter, coverage falls. At 70%: 1,338 answers, 87.3% correct. <span class="say">"When the model says it is sure, it usually is."</span></td><td>Those confident answers are mostly unmarried people with no children. A classifier finds the same rule, so this shows a learned pattern, not superiority.</td></tr>
+<tr><td>Race</td><td>Random real answers scored one by one. Early lines jump around, then settle near each method's true accuracy. See section 4.</td><td>On a short race the order of the fine-tuned model and gradient boosting can flip. That is noise.</td></tr>
+<tr><td>You vs model</td><td>You guess a respondent's answer, then see the model, a classifier and the majority guess. See section 3 for the reasoning recipe.</td><td>"The best human strategy is the same as the model's: guess the most common answer for that kind of person."</td></tr>
+<tr><td>Findings</td><td>Accuracy for every question on all 46,209 answers, the marital-status table, and the limitations. This is the honest page. Use it to close.</td><td>Read the three limits aloud: one fold, one seed, one epoch; no detectable transfer to unseen questions; classifiers still lead.</td></tr></table>
+
+<h2 class="pg">3. Quiz: reasoning for every prediction</h2>
+<div class="box ok"><b class="t">The four-step recipe, for any respondent and any question</b>
+<ol style="margin:2pt 0 0;padding-left:16pt">
+<li><b>Start from the base rate.</b> What is the most common answer to this question overall? (Majority column below.)</li>
+<li><b>Find the attribute that moves it.</b> Each question has one or two attributes the model keys on (table). Look at that attribute for this person.</li>
+<li><b>Name the group's most common answer.</b> That is what the model predicts. <span class="say">"People like this mostly answered X."</span></li>
+<li><b>Read the confidence.</b> High means that group's answers are concentrated (children, unmarried). Around 30% to 45% means people in that group are split, so the model is picking the best of a spread. Explain a miss as <i>this person is one of the group's minority</i>, not as a model malfunction.</li></ol></div>
+
+<h3>Per-question cheat sheet (full test fold, 46,209 answers)</h3>
+<table><tr><th>Question</th><th class="n">Fine-tuned / GBM / majority</th><th>What the model keys on, and what it predicts</th><th>Why it misses</th></tr>
+<tr><td>Number of children</td><td class="n">56.4 / 57.5 / 31.6</td><td>Marital status, then age. Unmarried or 18 to 25: no children. Age 26 to 44: two. Age 45 and over, or divorced or widowed: three or more.</td><td>Married people split between two and three or more. Accuracy is 49% for married, 97% for unmarried.</td></tr>
+<tr><td>Politicians in religion</td><td class="n">36.7 / 39.4 / 35.4</td><td>Nothing in the profile decides it. It says "Some influence" for 89% of people.</td><td>Real answers depend on no attribute by more than about 1% of their variation. Confidence is never 50% or more.</td></tr>
+<tr><td>Sex-selective checkups</td><td class="n">45.2 / 46.7 / 43.8</td><td>Region. "Completely unacceptable" almost everywhere (81% of predictions); Northeast is the exception, "completely acceptable".</td><td>"Unacceptable" is already 44% of all answers, so little room above the majority.</td></tr>
+<tr><td>Abortion</td><td class="n">42.8 / 44.5 / 38.6</td><td>Region. North, Central, East, West: "illegal in all cases". South and Northeast: "legal in all cases". It never picks the two "in most cases" options.</td><td>Middle options are never any group's most common answer, so argmax skips them.</td></tr>
+<tr><td>What being [religion] means</td><td class="n">32.3 / 34.6 / 25.9</td><td>Region. Northeast and South: ancestry. Elsewhere: religion. Never picks any "culture" option.</td><td>Eight options and a flat spread. Hardest question.</td></tr>
+<tr><td>Worship attendance</td><td class="n">29.3 / 31.2 / 21.5</td><td>Religion, then region. Muslim and Sikh: every day. Hindu and Christian: once a week. North: every day.</td><td>Seven options with no dominant answer inside most groups.</td></tr>
+<tr><td>Watching religious TV</td><td class="n">31.3 / 34.1 / 26.5</td><td>Region. It says "every day" or "never" and nothing in between (57% and 42% of predictions).</td><td>Real answers spread across all seven options, including the middle ones it never picks.</td></tr>
+<tr><td>Reading religious books</td><td class="n">30.8 / 33.2 / 21.1</td><td>Religion and region. Sikh, Christian, Muslim: every day. Hindu: seldom. South: never.</td><td>Even within Hindus, the largest group, the most common answer ("never") is only 25%.</td></tr></table>
+
+<div class="box key"><b class="t">Why the fine-tuned model never picks middle options</b>
+<p>It predicts the single most common answer for the person's group. For opinion scales the middle options (such as "legal in most cases", "once or twice a month") are rarely anyone's most common answer, so they never win, even though real people choose them 15% to 20% of the time. This is a feature of picking the top option, not a bug in the model, and gradient boosting does the same.</p></div>
+
+<h3>Why zero-shot answers the way it does</h3>
+<table><tr><th>Question</th><th>Zero-shot's habit</th><th>Real distribution</th></tr>
+<tr><td>Number of children</td><td>"One child" for 87% of people. Never two or three or more.</td><td>One child is only 17%. Two is 30% and three or more is 32%.</td></tr>
+<tr><td>Politicians in religion</td><td>"Not too much influence" for 98%.</td><td>That answer is only 16%.</td></tr>
+<tr><td>Sex-selective checkups</td><td>"Somewhat unacceptable" for 76%.</td><td>Only 11%. "Completely unacceptable" is 44%.</td></tr>
+<tr><td>Abortion</td><td>"Legal in most cases" for 65%.</td><td>Only 16%. Most real people pick an extreme.</td></tr>
+<tr><td>What being [religion] means</td><td>"Mainly a matter of culture" for 100%.</td><td>Only 10%.</td></tr>
+<tr><td>Worship, religious TV</td><td>"Once a week" for 86% and 75%.</td><td>Real answers spread from every day to never.</td></tr></table>
+<p class="say">"A base chat model has never seen these surveys. It hedges toward a polite moderate answer and ignores how Indian respondents actually answer. That is why prompting alone scores 16.1%. Fine-tuning replaces the hedge with the real answer rates."</p>
+<p>The profile also matters to it, but in the wrong direction: on a 200-respondent subset the profile explains 29% of its prediction variance against 4% for real answers, and removing the profile raises its accuracy by 3.6 points.</p>
+
+<h3>If you get a quiz row wrong, or the model does</h3>
+<ul>
+<li><b>You wrong, model right:</b> it applied the group lookup consistently. Say which attribute decided it.</li>
+<li><b>Model wrong, you right:</b> "this person is in the group's minority." Quote the confidence: at 40% it was always likely to miss one time in two.</li>
+<li><b>Both wrong:</b> the answer was unpredictable from the profile. That is the finding, not a failure of the demo.</li>
+<li><b>Model wrong with high confidence:</b> rare (about 13% of answers above 70%). Say so, and note the calibration table shows it is rare.</li>
+</ul>
+
+<h2 class="pg">4. Race: what the lines mean</h2>
+<ul>
+<li><b>What it is.</b> Random real test answers, scored one by one. Each line is a method's running accuracy.</li>
+<li><b>Why the lines jump early.</b> Few answers so far. Random error shrinks with the square root of the count.</li></ul>
+<table><tr><th class="n">Answers scored</th><th class="n">Rough error (one standard error) at 38% accuracy</th><th>What you can conclude</th></tr>
+<tr><td class="n">30</td><td class="n">about 9 points</td><td>Nothing yet; the order can be anything.</td></tr>
+<tr><td class="n">100</td><td class="n">about 5 points</td><td>Zero-shot is clearly last; the rest overlap.</td></tr>
+<tr><td class="n">300</td><td class="n">about 3 points</td><td>Fine-tuned and gradient boosting still overlap.</td></tr>
+<tr><td class="n">1,000</td><td class="n">about 1.5 points</td><td>The 2 point gap between gradient boosting and fine-tuned starts to show.</td></tr>
+<tr><td class="n">3,000</td><td class="n">about 0.9 points</td><td>Lines sit near 38.0, 40.0, 30.4 and 16.1.</td></tr></table>
+<ul>
+<li><b>Order to expect:</b> gradient boosting, then fine-tuned, then majority, then zero-shot. Fine-tuned and gradient boosting are two points apart, so on a short race they may cross. Say "that is sampling noise, the full-fold numbers are 40.0 and 38.0."</li>
+<li><b>Why zero-shot is last:</b> its hedged middle answers are rarely the real answer (previous section).</li>
+<li><b>Why fine-tuned beats majority:</b> it knows which kind of person gives which answer, so it beats the question's overall mode by 7.6 points.</li>
+<li><b>Single question races:</b> the gap is largest on the children question (56% vs 32% majority). It nearly disappears on politicians in religion, because the profile does not decide that answer.</li>
+<li><b>In the Selected demo:</b> the fine-tuned line sits near 87% because the data is only confident answers. Say that outright, and that gradient boosting matches it there.</li>
+</ul>
+
+<h2>5. Questions you may be asked</h2>
+<table><tr><th>Question</th><th>Answer</th></tr>
+<tr><td>Is the model reasoning about the person?</td><td>No. It is a single pass that outputs probabilities learned from training respondents. The reasons we give are measured patterns: which attributes its predictions change with, and what those groups usually answered.</td></tr>
+<tr><td>Why only 38%?</td><td>Opinions are spread out even within a demographic group. Every method using these nine attributes tops out near 40%. The meaningful comparison is the lift over the 30.4% majority guess, and the calibration.</td></tr>
+<tr><td>So is the model useful?</td><td>It is a calibrated, language-conditioned simulator close to a classifier. Its possible advantage, transfer to new questions, we could not confirm (28.9% vs 28.5% on 8 unseen items, p = 0.18, small and approximate test).</td></tr>
+<tr><td>Why does it trail gradient boosting?</td><td>Both use the same nine attributes. Boosting fits them directly. The language model adds nothing for these inputs and was fine-tuned for one epoch.</td></tr>
+<tr><td>Why are the confident answers so good?</td><td>They are nearly all the number-of-children question, mostly unmarried respondents predicted to have no children. A strong, simple rule that a classifier also finds.</td></tr>
+<tr><td>Does this represent India fairly?</td><td>Not yet established. Subgroup gaps exist (fine-tuned: religion 10.0 points, region 8.8, age 2.7). One fold and one seed; survey weights not applied.</td></tr>
+<tr><td>What about the odd codes like [QRELSING] in questions?</td><td>They are placeholders from Pew's questionnaire. [QRELSING] is the respondent's own religion; the model saw the code unfilled and got the religion from the profile. The demos show each code with its meaning. [OR] is a Pew codebook tag whose exact meaning we could not confirm; check the official questionnaire.</td></tr>
+<tr><td>Is the demo live?</td><td>No. It replays the stored outputs of the full run on all 46,209 answers, so you see exactly what the model produced.</td></tr></table>
+
+<div class="box warn"><b class="t">Do not say</b>
+<ul style="margin:0;padding-left:14pt"><li>"The model understands Indian society" or "it reasons about the person". It does neither.</li>
+<li>"87% accuracy". That is only for confident answers. Overall it is 38.0%.</li>
+<li>"Fine-tuning beats classifiers". It does not: 38.0% against 40.0%.</li>
+<li>"Zero-shot is below chance". It is below the majority guess (16.1% against 30.4%).</li></ul></div>
+</body></html>
