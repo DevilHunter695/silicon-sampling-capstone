@@ -47,6 +47,28 @@ for lab, v in (("Unmarried", "Unmarried"), ("Married / partner", "Married or liv
     g = ch[ch.profile.apply(lambda p: str(p.get("marital_status")) == v)]
     marital.append(dict(l=lab, n=int(len(g)), a=float(g.ok.mean()), h=float((g.conf >= .7).mean())))
 summ = dict(byq=byq, marital=marital, hi=int((d.conf >= .7).sum()), hiacc=float(d[d.conf >= .7].ok.mean()))
+# reasoning data for the "why did the model say this" boxes, computed on ALL test rows so the selected demo is not biased
+def _eta(V, prof, j):
+    tot = ((V - V.mean(0)) ** 2).sum(); bt = 0.0
+    for g in np.unique(prof[:, j]):
+        m = prof[:, j] == g; bt += m.sum() * ((V[m].mean(0) - V.mean(0)) ** 2).sum()
+    return bt / tot
+why = []
+_A = np.array(rows)
+for qi_ in range(len(Q)):
+    k_ = len(Q[qi_]["opts"]); A_ = _A[_A[:, 1] == qi_]
+    P_ = A_[:, 3:3 + k_] / 1000; Z_ = A_[:, 19:19 + k_] / 1000; y_ = A_[:, 2]
+    prof_ = np.array([R[r_][1:] for r_ in A_[:, 0]])
+    keys_ = [int(j) for j in np.argsort([_eta(P_, prof_, j) for j in range(len(ATTRS))])[::-1][:2]]
+    groups_ = []
+    for j in keys_:
+        g_ = {}
+        for v in np.unique(prof_[:, j]):
+            m = prof_[:, j] == v
+            g_[int(v)] = [int(m.sum()), [round(float(x), 3) for x in np.bincount(y_[m], minlength=k_) / m.sum()]]
+        groups_.append(g_)
+    rd = lambda x: [round(float(t), 3) for t in x]
+    why.append(dict(base=rd(np.bincount(y_, minlength=k_) / len(y_)), zs=rd(np.bincount(Z_.argmax(1), minlength=k_) / len(y_)), keys=keys_, groups=groups_))
 if mode == "selected":
     keep = sorted(set(d.index[d.conf >= .7]) | {i for i, _ in curated})
     newi = {o: n for n, o in enumerate(keep)}
@@ -54,7 +76,7 @@ if mode == "selected":
     R = [R[o] for o in used]
     rows = [[rmap[rows[i][0]]] + rows[i][1:] for i in keep]
     curated = [[newi[i], lab] for i, lab in curated]
-data = json.dumps(dict(mode=mode, cats=cats, disp=disp, attrs=ATTRS, R=R, Q=Q, rows=rows, curated=curated if mode == "selected" else [], tot=tot, sum=summ), separators=(",", ":"), ensure_ascii=False)
+data = json.dumps(dict(mode=mode, cats=cats, disp=disp, attrs=ATTRS, R=R, Q=Q, rows=rows, curated=curated if mode == "selected" else [], tot=tot, sum=summ, why=why), separators=(",", ":"), ensure_ascii=False)
 html = open(__file__.replace("make_demo.py", "template.html")).read().replace("__DATA__", data)
 html = html.replace("<title>Group 55 Interactive Demo</title>", "<title>Group 55 Demo %s</title>" % ("Selected Data" if mode == "selected" else "Full Data"))
 open(out, "w").write(html); print("wrote", out, len(html) // 1024, "KB", tot)

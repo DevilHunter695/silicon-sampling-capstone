@@ -27,6 +27,11 @@ code{font-family:Menlo,Consolas,monospace;font-size:8.8pt;background:#efece4;pad
 <h2>0. The story in 30 seconds</h2>
 <div class="box key"><b class="t">Say this first</b>
 <p class="say">We asked whether a language model can answer a survey the way an Indian respondent would. We gave Qwen2.5-7B a person's profile (sex, age, marital status, education, income, religion, caste, region, urban or rural) and asked real Pew questions. Prompted alone it scores 16.1%, worse than always guessing the most common answer (30.4%). After fine-tuning on respondent data it reaches 38.0%, with excellent calibration, but a gradient-boosting classifier on the same nine attributes still gets 40.0%. So fine-tuning fixes the model, but it does not beat the simple baseline.</p></div>
+<div class="box ok"><b class="t">What to open tomorrow (keep it to this)</b>
+<ol style="margin:2pt 0 0;padding-left:16pt"><li><b>The poster.</b> This is what you are presenting.</li>
+<li><b>Selected Data demo (blue):</b> <code>G55_2A_Demo_Selected_Data.html</code>. Use this for the live walk-through.</li>
+<li><b>Full Data demo (red):</b> <code>G55_2B_Demo_Full_Data.html</code>. Open it only if asked "is this cherry-picked?" or "what does a typical answer look like?" Its red theme makes it obvious which one you are in.</li></ol>
+<p style="margin-top:4pt">Nothing else is needed. The pipeline walkthrough now lives inside the Overview page of both demos, and the "why the results are what they are" and "how to improve" ending is the last page, Why &amp; next.</p></div>
 <table><tr><th>Memorise these</th><th class="n">Value</th><th>Where it comes from</th></tr>
 <tr><td>Fine-tuned accuracy</td><td class="n">38.0%</td><td>46,209 test answers, 6,000 respondents, 8 questions</td></tr>
 <tr><td>Majority guess / best classifier</td><td class="n">30.4% / 40.0%</td><td>always the most common answer / gradient boosting</td></tr>
@@ -53,16 +58,17 @@ code{font-family:Menlo,Consolas,monospace;font-size:8.8pt;background:#efece4;pad
 <tr><td>Zero-shot Qwen</td><td>Has never seen these surveys. It reads the profile, ignores real answer rates, and falls back on hedged, moderate answers (table in section 3).</td></tr></table>
 
 <h2 class="pg">2. The demo, page by page</h2>
-<p>The same eight pages appear in both demos. The Full Data demo has "Random draw" as page 2; the Selected Data demo has "Showcase". Everything else is identical, only the data behind it differs.</p>
+<p>The same nine pages appear in both demos. The Full Data demo (red) has "Random draw" as page 2; the Selected Data demo (blue) has "Showcase". Everything else is identical, only the data behind it differs.</p>
 <table class="tabs"><tr><th>Page</th><th>What it shows, and what to say</th><th>If someone pushes</th></tr>
-<tr><td>Overview</td><td>The headline numbers and the four-step pipeline: profile, prompt, model, probabilities. <span class="say">"Same pipeline for every method, so differences come from the method, not the setup."</span></td><td>Selected demo: the first counter is the selection size, not the full data. Say it, then point to 38.0% overall.</td></tr>
+<tr><td>Overview</td><td>The headline numbers, then a seven-stage stepper: survey data, folds, profile, prompt, predictors, readout, evaluation. Click through it as the pipeline explanation. <span class="say">"Same pipeline for every method, so differences come from the method, not the setup."</span></td><td>Selected demo: the first counter is the selection size, not the full data. Say it, then point to 38.0% overall.</td></tr>
 <tr><td>Showcase (selected) / Random draw (full)</td><td>One respondent at a time: profile, true answer, each method's probabilities, verdict. Showcase is the model's most confident correct answers. Random draw is unselected, so wrong answers appear as often as they really do.</td><td>"Showcase rows were chosen by us." If asked for typical performance, switch to the Full demo and draw a few.</td></tr>
 <tr><td>Builder</td><td>Pick any profile and question. It finds the real test respondents who match and compares each method's average predicted answers with what that group actually said. <span class="say">"The model gets group patterns right; individuals are the hard part."</span></td><td>Small groups are noisy. The page refuses fewer than 5 matches.</td></tr>
 <tr><td>Groups</td><td>Does the model get the differences between groups right (for example by region)? Correlation near 0.82 on the full fold.</td><td>"With only five or six groups a correlation can look high for any method, so read it with the bars." Zero-shot can look good here too (0.96 vs 0.92 on children by religion, five groups).</td></tr>
 <tr><td>Confidence</td><td>Slide the minimum confidence. Accuracy rises as you get stricter, coverage falls. At 70%: 1,338 answers, 87.3% correct. <span class="say">"When the model says it is sure, it usually is."</span></td><td>Those confident answers are mostly unmarried people with no children. A classifier finds the same rule, so this shows a learned pattern, not superiority.</td></tr>
 <tr><td>Race</td><td>Random real answers scored one by one. Early lines jump around, then settle near each method's true accuracy. See section 4.</td><td>On a short race the order of the fine-tuned model and gradient boosting can flip. That is noise.</td></tr>
 <tr><td>You vs model</td><td>You guess a respondent's answer, then see the model, a classifier and the majority guess. See section 3 for the reasoning recipe.</td><td>"The best human strategy is the same as the model's: guess the most common answer for that kind of person."</td></tr>
-<tr><td>Findings</td><td>Accuracy for every question on all 46,209 answers, the marital-status table, and the limitations. This is the honest page. Use it to close.</td><td>Read the three limits aloud: one fold, one seed, one epoch; no detectable transfer to unseen questions; classifiers still lead.</td></tr></table>
+<tr><td>Findings</td><td>Accuracy for every question on all 46,209 answers, the marital-status table, and the limitations. This is the honest page.</td><td>Read the three limits aloud: one fold, one seed, one epoch; no detectable transfer to unseen questions; classifiers still lead.</td></tr>
+<tr><td>Why &amp; next</td><td>The ending. Seven reasons the results are what they are, each with its evidence line, then eight ways to improve. <span class="say">"These improvements are ideas we did not test; they follow from the reasons."</span></td><td>If asked what you would do first: give the model more to go on (the respondent's other answers), and blend it with the classifier.</td></tr></table>
 
 <h2 class="pg">3. Quiz: reasoning for every prediction</h2>
 <div class="box ok"><b class="t">The four-step recipe, for any respondent and any question</b>
@@ -72,6 +78,7 @@ code{font-family:Menlo,Consolas,monospace;font-size:8.8pt;background:#efece4;pad
 <li><b>Name the group's most common answer.</b> That is what the model predicts. <span class="say">"People like this mostly answered X."</span></li>
 <li><b>Read the confidence.</b> High means that group's answers are concentrated (children, unmarried). Around 30% to 45% means people in that group are split, so the model is picking the best of a spread. Explain a miss as <i>this person is one of the group's minority</i>, not as a model malfunction.</li></ol></div>
 
+<div class="box key"><b class="t">The quiz now explains itself</b><p>After every answer (and under every respondent card) a "Why the model said this" box appears. It follows the same steps as the recipe above: base rate, the attribute the model keys on, the group's most common answer, what the confidence means, the zero-shot habit, whether gradient boosting agreed, and a verdict that says how few people in that group gave the real answer. Read it aloud; it is built from the data, so it is always true for that respondent. Groups with fewer than 30 respondents are skipped.</p></div>
 <h3>Per-question cheat sheet (full test fold, 46,209 answers)</h3>
 <table><tr><th>Question</th><th class="n">Fine-tuned / GBM / majority</th><th>What the model keys on, and what it predicts</th><th>Why it misses</th></tr>
 <tr><td>Number of children</td><td class="n">56.4 / 57.5 / 31.6</td><td>Marital status, then age. Unmarried or 18 to 25: no children. Age 26 to 44: two. Age 45 and over, or divorced or widowed: three or more.</td><td>Married people split between two and three or more. Accuracy is 49% for married, 97% for unmarried.</td></tr>
@@ -120,6 +127,7 @@ code{font-family:Menlo,Consolas,monospace;font-size:8.8pt;background:#efece4;pad
 <li><b>Why zero-shot is last:</b> its hedged middle answers are rarely the real answer (previous section).</li>
 <li><b>Why fine-tuned beats majority:</b> it knows which kind of person gives which answer, so it beats the question's overall mode by 7.6 points.</li>
 <li><b>Single question races:</b> the gap is largest on the children question (56% vs 32% majority). It nearly disappears on politicians in religion, because the profile does not decide that answer.</li>
+<li><b>Axis:</b> the chart now scales to the data. In the Full demo it runs to 60% for all questions (70% to 80% for a single question such as children). In the Selected demo it runs to 100%.</li>
 <li><b>In the Selected demo:</b> the fine-tuned line sits near 87% because the data is only confident answers. Say that outright, and that gradient boosting matches it there.</li>
 </ul>
 
@@ -134,6 +142,25 @@ code{font-family:Menlo,Consolas,monospace;font-size:8.8pt;background:#efece4;pad
 <tr><td>What about the odd codes like [QRELSING] in questions?</td><td>They are placeholders from Pew's questionnaire. [QRELSING] is the respondent's own religion; the model saw the code unfilled and got the religion from the profile. The demos show each code with its meaning. [OR] is a Pew codebook tag whose exact meaning we could not confirm; check the official questionnaire.</td></tr>
 <tr><td>Is the demo live?</td><td>No. It replays the stored outputs of the full run on all 46,209 answers, so you see exactly what the model produced.</td></tr></table>
 
+<h2>6. Why the results are what they are, and how to improve</h2>
+<p>This mirrors the last page, Why &amp; next. One line each.</p>
+<table><tr><th>Why the results are what they are</th><th>Evidence</th></tr>
+<tr><td>The profile only partly decides opinions, so every method tops out near 40%.</td><td>Best attribute explains about 1% to 5% of opinion answers; gradient boosting 40.0%.</td></tr>
+<tr><td>Fine-tuning lands at classifier level: both learn the same group lookup.</td><td>Top picks agree on 61% to 84% of answers; 38.0% vs 40.0%.</td></tr>
+<tr><td>Zero-shot hedges to moderate answers and ignores real answer rates.</td><td>"One child" for 87%; 16.1% overall.</td></tr>
+<tr><td>Confident answers are rule-like (unmarried, no children).</td><td>87.3% on 1,338 answers.</td></tr>
+<tr><td>Opinion questions stay near the majority guess.</td><td>Politicians in religion 36.7% vs 35.4%.</td></tr>
+<tr><td>The model never picks middle options (they are never a group's top answer).</td><td>Real people choose them 15% to 20% of the time.</td></tr>
+<tr><td>No detectable transfer to unseen questions; the test is small and approximate.</td><td>28.9% vs 28.5%, p = 0.18.</td></tr></table>
+<table><tr><th>How it could be improved (ideas, not tested)</th><th>Why it should help</th></tr>
+<tr><td>Give the model more to go on: richer attributes or the respondent's other answers.</td><td>The ceiling is information, not model size.</td></tr>
+<tr><td>Train on all 73 items, all folds, several seeds, more epochs.</td><td>Lets it learn a general skill and lets us test transfer with enough items.</td></tr>
+<tr><td>Blend the model with the classifier.</td><td>They disagree on up to 39% of answers; averaging may beat both.</td></tr>
+<tr><td>Sample answers from the probabilities instead of taking the top one.</td><td>Restores middle options and real population shares.</td></tr>
+<tr><td>Fill in question placeholders such as [QRELSING].</td><td>The model then sees the exact question each person saw.</td></tr>
+<tr><td>Apply survey weights and audit subgroups.</td><td>Results then reflect India's population; gaps are measured fairly.</td></tr>
+<tr><td>Larger and newer models, including a frontier-model check.</td><td>Tests whether scale changes the picture.</td></tr>
+<tr><td>More surveys and countries.</td><td>Shows whether the pattern is specific to this survey.</td></tr></table>
 <div class="box warn"><b class="t">Do not say</b>
 <ul style="margin:0;padding-left:14pt"><li>"The model understands Indian society" or "it reasons about the person". It does neither.</li>
 <li>"87% accuracy". That is only for confident answers. Overall it is 38.0%.</li>
