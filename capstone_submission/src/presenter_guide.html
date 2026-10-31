@@ -30,7 +30,7 @@ code{font-family:Menlo,Consolas,monospace;font-size:8.8pt;background:#efece4;pad
 <div class="box ok"><b class="t">What to open tomorrow (keep it to this)</b>
 <ol style="margin:2pt 0 0;padding-left:16pt"><li><b>The poster.</b> This is what you are presenting.</li>
 <li><b>Selected Data demo (blue):</b> <code>G55_2A_Demo_Selected_Data.html</code>. Use this for the live walk-through.</li>
-<li><b>Full Data demo (red):</b> <code>G55_2B_Demo_Full_Data.html</code>. Open it only if asked "is this cherry-picked?" or "what does a typical answer look like?" Its red theme makes it obvious which one you are in.</li></ol>
+<li><b>Full Data demo (green):</b> <code>G55_2B_Demo_Full_Data.html</code>. Open it only if asked "is this cherry-picked?" or "what does a typical answer look like?" Its green theme makes it obvious which one you are in.</li></ol>
 <p style="margin-top:4pt">Nothing else is needed. The pipeline walkthrough now lives inside the Overview page of both demos, and the "why the results are what they are" and "how to improve" ending is the last page, Why &amp; next.</p></div>
 <table><tr><th>Memorise these</th><th class="n">Value</th><th>Where it comes from</th></tr>
 <tr><td>Fine-tuned accuracy</td><td class="n">38.0%</td><td>46,209 test answers, 6,000 respondents, 8 questions</td></tr>
@@ -58,7 +58,7 @@ code{font-family:Menlo,Consolas,monospace;font-size:8.8pt;background:#efece4;pad
 <tr><td>Zero-shot Qwen</td><td>Has never seen these surveys. It reads the profile, ignores real answer rates, and falls back on hedged, moderate answers (table in section 3).</td></tr></table>
 
 <h2 class="pg">2. The demo, page by page</h2>
-<p>The same nine pages appear in both demos. The Full Data demo (red) has "Random draw" as page 2; the Selected Data demo (blue) has "Showcase". Everything else is identical, only the data behind it differs.</p>
+<p>The same nine pages appear in both demos. The Full Data demo (green) has "Random draw" as page 2; the Selected Data demo (blue) has "Showcase". Everything else is identical, only the data behind it differs.</p>
 <table class="tabs"><tr><th>Page</th><th>What it shows, and what to say</th><th>If someone pushes</th></tr>
 <tr><td>Overview</td><td>The headline numbers, then a seven-stage stepper: survey data, folds, profile, prompt, predictors, readout, evaluation. Click through it as the pipeline explanation. <span class="say">"Same pipeline for every method, so differences come from the method, not the setup."</span></td><td>Selected demo: the first counter is the selection size, not the full data. Say it, then point to 38.0% overall.</td></tr>
 <tr><td>Showcase (selected) / Random draw (full)</td><td>One respondent at a time: profile, true answer, each method's probabilities, verdict. Showcase is the model's most confident correct answers. Random draw is unselected, so wrong answers appear as often as they really do.</td><td>"Showcase rows were chosen by us." If asked for typical performance, switch to the Full demo and draw a few.</td></tr>
